@@ -17,7 +17,7 @@ export function LoginForm() {
       // Inicia o fluxo de login do Google
       // O NextAuth cuidará do redirecionamento
       await signIn("google", {
-        callbackUrl: "/", // Redireciona para o dashboard após o sucesso
+        callbackUrl: "/transactions", // Redireciona para o dashboard após o sucesso
       });
       // O 'toast' de sucesso/erro pode ser tratado na página de callback
       // ou globalmente, mas para o 'signIn' de provedor,
