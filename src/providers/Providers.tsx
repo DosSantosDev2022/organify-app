@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { Poppins } from "next/font/google";
+import { AuthProvider } from "./AuthProvider";
 
 const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700"],
@@ -30,17 +31,20 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <body
       className={`${poppins.className} antialiased h-full m-0 p-0 overflow-hidden`}
     >
-      <QueryProvider>
-        <NextThemesProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </NextThemesProvider>
-        <Toaster position="top-center" richColors />
-      </QueryProvider>
+      <AuthProvider>
+        <QueryProvider>
+          <NextThemesProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </NextThemesProvider>
+          <Toaster position="top-center" richColors />
+        </QueryProvider>
+      </AuthProvider>
+
     </body>
   );
 }

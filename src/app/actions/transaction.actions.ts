@@ -2,15 +2,30 @@
 "use server"; // Marca este ficheiro como contendo Server Actions
 
 import { z } from "zod";
-import { PrismaClient, TransactionType } from "@prisma/client";
+import { TransactionType } from "@prisma/client";
 import { transactionSchema } from "@/schemas/validations";
 import { revalidatePath } from "next/cache";
 import { endOfMonth, startOfMonth } from "date-fns";
+import db from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const prisma = new PrismaClient();
 type TransactionData = z.infer<typeof transactionSchema>;
 
+async function getAuthenticatedUserId() {
+  const session = await getServerSession(authOptions); // Obtém a sessão do Next-Auth
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    throw new Error("User not authenticated.");
+  }
+  return userId;
+}
+
 export async function createTransaction(data: TransactionData) {
+
+  // --- 3. OBTER O USERID ---
+    const userId = await getAuthenticatedUserId();
   // 1. Validar os dados no servidor (nunca confiar no cliente)
   const validation = transactionSchema.safeParse(data);
 
@@ -29,12 +44,13 @@ export async function createTransaction(data: TransactionData) {
     const amountInCents = Math.round(amount * 100);
 
     // 3. Inserir no banco de dados
-    await prisma.transaction.create({
+    await db.transaction.create({
       data: {
         description: description,
         amount: amountInCents,
         date: date,
         type: type,
+        userId: userId,
       },
     });
 
@@ -55,13 +71,16 @@ export async function getTransactions(
   type: TransactionType,
   selectedDate: Date // <-- NOVO PARÂMETRO
 ) {
-  // Calcula o início e o fim do mês no servidor
-  const startDate = startOfMonth(selectedDate);
-  const endDate = endOfMonth(selectedDate);
 
   try {
-    const transactions = await prisma.transaction.findMany({
+    const userId = await getAuthenticatedUserId();
+    const startDate = startOfMonth(selectedDate);
+    const endDate = endOfMonth(selectedDate);
+
+
+    const transactions = await db.transaction.findMany({
       where: {
+        userId: userId,
         type: type,
         date: {
           gte: startDate, // gte = 'maior ou igual a'
@@ -90,17 +109,20 @@ export async function getTransactions(
 export async function getSummaryTotals(
   selectedDate: Date // <-- NOVO PARÂMETRO
 ) {
-  const startDate = startOfMonth(selectedDate);
-  const endDate = endOfMonth(selectedDate);
 
   try {
-    const summaryData = await prisma.transaction.groupBy({
+    const userId = await getAuthenticatedUserId();
+    const startDate = startOfMonth(selectedDate);
+    const endDate = endOfMonth(selectedDate);
+
+    const summaryData = await db.transaction.groupBy({
       by: ["type"],
       _sum: {
         amount: true,
       },
       // Adiciona o filtro de data aqui
       where: {
+        userId: userId,
         date: {
           gte: startDate,
           lte: endDate,
@@ -108,7 +130,6 @@ export async function getSummaryTotals(
       },
     });
 
-    // ... (o resto da lógica de processamento de 'totals' e 'balance' continua igual)
     const totals = {
       income: 0,
       fixedExpense: 0,
@@ -153,6 +174,7 @@ export async function updateTransaction(
   id: string,
   data: TransactionData
 ) {
+  const userId = await getAuthenticatedUserId();
   // Validação no servidor
   const validation = transactionSchema.safeParse(data);
   if (!validation.success) {
@@ -165,8 +187,8 @@ export async function updateTransaction(
     // Converte para centavos
     const amountInCents = Math.round(amount * 100);
 
-    await prisma.transaction.update({
-      where: { id: id },
+    await db.transaction.update({
+      where: { id: id, userId: userId, },
       data: {
         description: description,
         amount: amountInCents,
@@ -189,8 +211,10 @@ export async function deleteTransaction(id: string) {
   }
 
   try {
-    await prisma.transaction.delete({
-      where: { id: id },
+    const userId = await getAuthenticatedUserId();
+
+    await db.transaction.delete({
+      where: { id: id, userId: userId, },
     });
 
     return { success: true };
@@ -201,10 +225,13 @@ export async function deleteTransaction(id: string) {
 }
 
 export async function getRunningBalance(selectedDate: Date) {
-  // Queremos o saldo total até o FIM do mês selecionado
-  const endDate = endOfMonth(selectedDate);
+  
 
   try {
+
+    const userId = await getAuthenticatedUserId();
+  // Queremos o saldo total até o FIM do mês selecionado
+  const endDate = endOfMonth(selectedDate);
     // Usamos $transaction para executar todas as consultas em
     // uma única transação de banco de dados.
     const [
@@ -212,35 +239,39 @@ export async function getRunningBalance(selectedDate: Date) {
       totalFixedExpense,
       totalVariableExpense,
       totalInvestment,
-    ] = await prisma.$transaction([
+    ] = await db.$transaction([
       // 1. Soma de todas as Receitas até a data
-      prisma.transaction.aggregate({
+      db.transaction.aggregate({
         _sum: { amount: true },
         where: {
+          userId: userId,
           type: TransactionType.INCOME,
           date: { lte: endDate }, // lte = menor ou igual a
         },
       }),
       // 2. Soma de todas as Despesas Fixas até a data
-      prisma.transaction.aggregate({
+      db.transaction.aggregate({
         _sum: { amount: true },
         where: {
+          userId: userId,
           type: TransactionType.FIXED_EXPENSE,
           date: { lte: endDate },
         },
       }),
       // 3. Soma de todas as Despesas Variáveis até a data
-      prisma.transaction.aggregate({
+      db.transaction.aggregate({
         _sum: { amount: true },
         where: {
+          userId: userId,
           type: TransactionType.VARIABLE_EXPENSE,
           date: { lte: endDate },
         },
       }),
       // 4. Soma de todos os Investimentos até a data
-      prisma.transaction.aggregate({
+      db.transaction.aggregate({
         _sum: { amount: true },
         where: {
+          userId: userId,
           type: TransactionType.INVESTMENT,
           date: { lte: endDate },
         },
