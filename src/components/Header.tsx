@@ -1,4 +1,5 @@
 import { ThemeButton } from "./ThemeButton"
+import { UserAvatar } from "./UserAvatar"
 
 const Header = () => {
   return (
@@ -11,7 +12,10 @@ const Header = () => {
           </p>
         </div>
 
-        <ThemeButton />
+        <div className="flex items-center gap-2.5">
+          <ThemeButton />
+          <UserAvatar />
+        </div>
       </div>
     </header>
   )
