@@ -8,8 +8,19 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "prisma:generate": "dotenv -e .env -- prisma generate",
-    "prisma:migrate": "dotenv -e .env -- prisma migrate dev"
+
+    
+    "db:dev:migrate": "dotenv -e .env -- prisma migrate dev --schema prisma/schema.dev.prisma",
+    "db:dev:push":    "dotenv -e .env -- prisma db push --schema prisma/schema.dev.prisma",
+    "db:dev:generate":"dotenv -e .env -- prisma generate --schema prisma/schema.dev.prisma",
+    
+    "db:dev:setup": "pnpm db:dev:migrate && pnpm db:dev:generate",
+
+    "db:prod:migrate": "dotenv -e .env -- prisma migrate deploy --schema prisma/schema.prisma",
+    "db:prod:generate": "dotenv -e .env -- prisma generate --schema prisma/schema.prisma",
+
+    "postinstall": "pnpm db:prod:generate"
+   
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
