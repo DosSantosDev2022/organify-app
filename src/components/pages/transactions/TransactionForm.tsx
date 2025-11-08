@@ -6,8 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TransactionSchema, transactionSchema } from "@/schemas/validations";
 import { TransactionType } from "@prisma/client";
-import { createTransaction } from "@/app/actions/transaction.actions";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Form,
   FormControl,
@@ -15,29 +13,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
+  Button,
+  Input,
+  Calendar
+} from "@/components/ui";;
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useUpdateTransaction } from "@/hooks/use-update-transaction";
+import { useUpdateTransaction, useCreateTransaction } from "@/hooks/transactions";
 import { TransactionFromApi } from "./TransactionTable";
-import { useCreateTransaction } from "@/hooks/use-create-transaction";
-
 // Prop para que o formulário possa fechar o modal
 interface TransactionFormProps {
   onClose: () => void;

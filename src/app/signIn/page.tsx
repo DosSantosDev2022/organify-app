@@ -1,5 +1,5 @@
 // app/auth/login/page.tsx (ou similar)
-import { LoginForm } from '@/components/LoginForm';
+import { LoginForm } from '@/components/global';
 import Image from 'next/image';
 import Link from 'next/link';
 

@@ -58,7 +58,7 @@ const UserAvatar = () => {
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/login' })}>
+        <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/signIn' })}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>
         </DropdownMenuItem>

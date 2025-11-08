@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import { TransactionType } from "@prisma/client";
-import { useGetTransactions } from "@/hooks/use-get-transactions";
-import { useDeleteTransaction } from "@/hooks/use-delete-transaction"; // Importar hook de delete
-
+import { useGetTransactions, useDeleteTransaction } from "@/hooks/transactions";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -23,11 +19,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"; // Importar Alert Dialog
-import { Button } from "@/components/ui/button";
-import { TransactionForm } from "@/components/TransactionForm";
-import { TransactionTable } from "@/components/TransactionTable";
-import { Skeleton } from "@/components/ui/skeleton";
+  Skeleton,
+  Button
+} from "@/components/ui";
+import { TransactionTable, TransactionForm } from "@/components/pages/transactions";
 import { Plus, Loader2 } from "lucide-react";
 
 interface TransactionTabContentProps {

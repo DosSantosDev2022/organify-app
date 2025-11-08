@@ -2,7 +2,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui";
 import { FcGoogle } from "react-icons/fc"; // Importa o ícone do Google
 import { useState } from "react";
 import { Loader2 } from "lucide-react";

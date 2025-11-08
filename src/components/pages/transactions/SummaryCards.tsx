@@ -6,17 +6,15 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useGetSummary } from "@/hooks/use-get-summary";
+  Skeleton
+} from "@/components/ui";
 import { formatCurrency } from "@/lib/formatters";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useGetRunningBalance } from "@/hooks/use-get-running-balance";
+import { useGetRunningBalance, useGetSummary } from "@/hooks/transactions";
 
 import {
   TrendingUp,
   Receipt,
   ShoppingCart,
-  Briefcase,
   Scale,
   Wallet,
 } from "lucide-react";
@@ -62,7 +60,7 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
   };
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
+    <section className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
       {renderCard(
         "Receitas",
         summary?.income,
@@ -84,13 +82,13 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
         isLoadingSummary,
         ShoppingCart
       )}
-      {renderCard(
+      {/*  {renderCard(
         "Investimentos",
         summary?.investment,
         "text-primary bg-primary/10 border-primary/20",
         isLoadingSummary,
         Briefcase
-      )}
+      )} */}
       {renderCard(
         "Saldo mês atual",
         summary?.balance,

@@ -29,7 +29,7 @@ const poppins = Poppins({
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <body
-      className={`${poppins.className} antialiased h-full m-0 p-0 overflow-hidden`}
+      className={`${poppins.className} antialiased h-full m-0 p-0`}
     >
       <AuthProvider>
         <QueryProvider>

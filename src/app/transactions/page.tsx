@@ -1,5 +1,6 @@
 'use client'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { SummaryCards, MonthSelector, TransactionTabContent } from "@/components/pages/transactions";
 import {
   ReceiptText,
   Receipt,
@@ -7,12 +8,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
-import { TransactionTabContent } from "@/components/TransactionTabContent";
 import { TransactionType } from "@prisma/client";
-import { SummaryCards } from "@/components/SummaryCards";
 import { startOfMonth } from "date-fns";
-import { MonthSelector } from "@/components/MonthSelector";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/global";
 
 export default function TransactionPage() {
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
@@ -47,7 +45,7 @@ export default function TransactionPage() {
               <ShoppingCart className="mr-2 h-4 w-4" />
               Despesas Variáveis
             </TabsTrigger>
-            <TabsTrigger value="investments">
+            <TabsTrigger disabled value="investments">
               <TrendingUp className="mr-2 h-4 w-4" />
               Investimentos
             </TabsTrigger>
