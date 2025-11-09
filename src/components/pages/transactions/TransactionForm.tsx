@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useFormTransactionController } from "@/hooks/transactions";
 import { TransactionFromApi } from "./TransactionTable";
+import { ptBR } from "date-fns/locale";
 // Prop para que o formulário possa fechar o modal
 interface TransactionFormProps {
   onClose: () => void;
@@ -146,7 +147,7 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(field.value, "PPP", { locale: ptBR })
                       ) : (
                         <span>Pick a date</span>
                       )}
