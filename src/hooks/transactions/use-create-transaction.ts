@@ -9,7 +9,7 @@ import { toast } from "sonner"; // <-- Importar o toast
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
 
-  const { mutate: create, isPending } = useMutation({
+  const { mutateAsync: create, isPending } = useMutation({
     mutationFn: (data: TransactionSchema) => createTransaction(data),
 
     // 'onSuccess' é chamado quando a Server Action retorna

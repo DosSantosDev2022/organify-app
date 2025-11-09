@@ -1,10 +1,5 @@
 // components/TransactionForm.tsx
 "use client";
-
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { TransactionSchema, transactionSchema } from "@/schemas/validations";
 import { TransactionType } from "@prisma/client";
 import {
   Form,
@@ -28,7 +23,7 @@ import {
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useUpdateTransaction, useCreateTransaction } from "@/hooks/transactions";
+import { useFormTransactionController } from "@/hooks/transactions";
 import { TransactionFromApi } from "./TransactionTable";
 // Prop para que o formulário possa fechar o modal
 interface TransactionFormProps {
@@ -37,78 +32,13 @@ interface TransactionFormProps {
   selectedMonth: Date;
 }
 
-const getEmptyValues = (selectedMonth: Date): TransactionSchema => ({
-  description: "",
-  amount: undefined as any,
-  date: selectedMonth, // <-- USA O MÊS ATUAL
-  type: TransactionType.INCOME,
-});
 
 export function TransactionForm({ onClose, initialData, selectedMonth, }: TransactionFormProps) {
-  const { create, isPending: isCreating } = useCreateTransaction();
-  const { update, isPending: isUpdating } = useUpdateTransaction()
-  const [serverError, setServerError] = useState<string | null>(null);
-
-  const isPending = isUpdating || isCreating; // Ocupado se estiver a criar OU a atualizar
-
-
-  const form = useForm<TransactionSchema>({
-    resolver: zodResolver(transactionSchema),
-    // Valores padrão (ex: data de hoje)
-    defaultValues: initialData
-      ? {
-        ...initialData,
-        date: new Date(initialData.date), // Garante que a data é um objeto Date
-      }
-      : getEmptyValues(selectedMonth),
+  const { form, onSubmit, isPending, serverError } = useFormTransactionController({
+    initialData,
+    selectedMonth,
+    onClose,
   });
-
-  // 3. Efeito para resetar o formulário
-  // Isto garante que se o modal for aberto para "Editar"
-  // e depois fechado e aberto para "Criar", os dados antigos não fiquem lá.
-  useEffect(() => {
-    if (initialData) {
-      form.reset({
-        ...initialData,
-        date: new Date(initialData.date),
-      });
-    } else {
-      form.reset(getEmptyValues(selectedMonth));
-    }
-  }, [initialData, selectedMonth, form]);
-
-  async function onSubmit(data: TransactionSchema) {
-    setServerError(null);
-
-    if (initialData) {
-      // Modo "Editar"
-      update(
-        { id: initialData.id, data },
-        {
-          onSuccess: (result) => {
-            // O hook mostra o toast. Nós só fechamos o modal.
-            if (result.success) {
-              onClose();
-            } else {
-              setServerError("Erro de validação.");
-            }
-          },
-        }
-      );
-    } else {
-      // Modo "Criar"
-      create(data, {
-        onSuccess: (result) => {
-          // O hook mostra o toast. Nós só fechamos o modal.
-          if (result.success) {
-            onClose();
-          } else {
-            setServerError("Erro de validação.");
-          }
-        },
-      });
-    }
-  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

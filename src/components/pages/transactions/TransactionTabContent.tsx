@@ -1,9 +1,8 @@
 // components/TransactionTabContent.tsx
 "use client";
 
-import { useState } from "react";
 import { TransactionType } from "@prisma/client";
-import { useGetTransactions, useDeleteTransaction } from "@/hooks/transactions";
+import { useTransactionTabController } from "@/hooks/transactions";
 import {
   Dialog,
   DialogContent,
@@ -32,60 +31,29 @@ interface TransactionTabContentProps {
 }
 
 export function TransactionTabContent({ type, title, selectedMonth }: TransactionTabContentProps) {
-  // --- NOVOS ESTADOS DE GESTÃO ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [editingTransactionId, setEditingTransactionId] = useState<
-    string | null
-  >(null);
-  const [deletingTransactionId, setDeletingTransactionId] = useState<
-    string | null
-  >(null);
-  // ------------------------------
+  const {
+    // Dados e Estado
+    transactions,
+    isLoading,
+    isError,
+    error,
 
-  // 1. Hooks de dados e mutação
-  const { transactions, isLoading, isError, error } = useGetTransactions(
-    type,
-    selectedMonth
-  );
-  const { remove, isPending: isDeleting } = useDeleteTransaction();
+    // Modal
+    isModalOpen,
+    setIsModalOpen,
+    editingTransaction,
+    handleOpenEditModal,
+    handleCloseModal,
+    handleOpenCreateModal, // Usado no DialogTrigger
 
-  // 2. Funções de Abertura (chamadas pela TransactionTable)
-  const handleOpenEditModal = (id: string) => {
-    setEditingTransactionId(id);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenDeleteAlert = (id: string) => {
-    setDeletingTransactionId(id);
-    setIsDeleteAlertOpen(true);
-  };
-
-  // 3. Funções de Fecho (resetam o estado)
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingTransactionId(null); // Limpa o ID de edição ao fechar
-  };
-
-  const handleCloseDeleteAlert = () => {
-    setIsDeleteAlertOpen(false);
-    setDeletingTransactionId(null); // Limpa o ID de exclusão
-  };
-
-  // 4. Ação de Excluir
-  const handleConfirmDelete = () => {
-    if (deletingTransactionId) {
-      remove(deletingTransactionId, {
-        onSuccess: () => {
-          handleCloseDeleteAlert(); // Fecha o alerta no sucesso
-        },
-      });
-    }
-  };
-
-  // 5. Encontra a transação a ser editada
-  const editingTransaction =
-    transactions?.find((tx) => tx.id === editingTransactionId) || null;
+    // Alerta de Exclusão
+    isDeleteAlertOpen,
+    setIsDeleteAlertOpen,
+    isDeleting,
+    handleOpenDeleteAlert,
+    handleCloseDeleteAlert,
+    handleConfirmDelete,
+  } = useTransactionTabController({ type, selectedMonth });
 
   // 6. Renderização (Loading, Erro, Dados)
   const renderContent = () => {
@@ -126,7 +94,7 @@ export function TransactionTabContent({ type, title, selectedMonth }: Transactio
         <h2 className="text-xl font-semibold">{title}</h2>
 
         <DialogTrigger asChild>
-          <Button onClick={() => setEditingTransactionId(null)}>
+          <Button onClick={handleOpenCreateModal}>
             <Plus className="h-4 w-4" />
             Adicionar
           </Button>
@@ -140,10 +108,10 @@ export function TransactionTabContent({ type, title, selectedMonth }: Transactio
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {editingTransactionId ? "Editar Transação" : "Adicionar Transação"}
+            {editingTransaction ? "Editar Transação" : "Adicionar Transação"}
           </DialogTitle>
           <DialogDescription>
-            {editingTransactionId
+            {editingTransaction
               ? "Atualize os dados da sua transação."
               : "Preencha os dados da sua nova transação."}
           </DialogDescription>

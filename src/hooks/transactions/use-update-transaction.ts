@@ -9,7 +9,7 @@ import { toast } from "sonner"; // <-- 1. Importar
 export function useUpdateTransaction() {
   const queryClient = useQueryClient();
 
-  const { mutate: update, isPending } = useMutation({
+  const { mutateAsync: update, isPending } = useMutation({
     mutationFn: ({
       id,
       data,
