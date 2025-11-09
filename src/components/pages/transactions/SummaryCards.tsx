@@ -42,7 +42,7 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
       <Card className={colorClasses}>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <CardTitle className="text-sm sm:text-base font-medium">{title}</CardTitle>
             <IconComponent className="h-4 w-4" />
           </div>
         </CardHeader>
@@ -50,7 +50,7 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
           {isLoading ? (
             <Skeleton className="h-8 w-3/4" />
           ) : (
-            <p className="text-2xl font-bold">
+            <p className="text-2xl sm:text-3xl font-bold">
               {formatCurrency(value || 0)}
             </p>
           )}
@@ -60,7 +60,7 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
   };
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
       {renderCard(
         "Receitas",
         summary?.income,

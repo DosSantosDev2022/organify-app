@@ -15,7 +15,7 @@ import { Header } from "@/components/global";
 export default function TransactionPage() {
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   return (
-    <main className="container mx-auto p-8">
+    <main className="container mx-auto p-4 lg:p-8">
       {/* Cabeçalho (sem alteração) */}
       <Header />
 
@@ -29,9 +29,9 @@ export default function TransactionPage() {
       <SummaryCards selectedMonth={selectedMonth} />
 
       {/* Sistema de Abas (Tabs) */}
-      <section>
+      <section className="mt-4">
         <Tabs defaultValue="income">
-          <TabsList>
+          <TabsList className="w-full overflow-x-auto whitespace-nowrap justify-start h-auto p-1">
             {/* ... TabsTriggers (sem alteração) ... */}
             <TabsTrigger value="income">
               <ReceiptText className="mr-2 h-4 w-4" />

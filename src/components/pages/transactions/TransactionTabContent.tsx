@@ -127,7 +127,7 @@ export function TransactionTabContent({ type, title, selectedMonth }: Transactio
 
         <DialogTrigger asChild>
           <Button onClick={() => setEditingTransactionId(null)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             Adicionar
           </Button>
         </DialogTrigger>
