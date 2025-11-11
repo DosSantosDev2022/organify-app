@@ -72,6 +72,18 @@ enum TransactionType {
   INVESTMENT
 }
 
+model Category {
+  id String @id @default(cuid())
+  name String @unique // Nome da categoria (ex: Salário, Aluguel, Supermercado)
+  type TransactionType // Tipo de transação a que esta categoria pertence
+
+  // Relacionamento com as transações
+  transactions Transaction[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @updatedAt @db.Timestamp(3)
+}
+
 // Modelo principal de transações
 model Transaction {
   id          String    @id @default(cuid())
@@ -79,6 +91,10 @@ model Transaction {
   amount      Int     // Usamos INT para valores monetários
   date        DateTime @db.Timestamp(3)
   type        TransactionType // Referencia o nosso enum
+
+  categoryId  String?
+  category Category? @relation(fields: [categoryId], references: [id])
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 

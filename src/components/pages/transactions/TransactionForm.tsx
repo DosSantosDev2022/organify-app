@@ -26,6 +26,8 @@ import { format } from "date-fns";
 import { useFormTransactionController } from "@/hooks/transactions";
 import { TransactionFromApi } from "./TransactionTable";
 import { ptBR } from "date-fns/locale";
+import { useEffect } from "react";
+import { useCategories } from "@/hooks/transactions/use-categories";
 // Prop para que o formulário possa fechar o modal
 interface TransactionFormProps {
   onClose: () => void;
@@ -33,13 +35,15 @@ interface TransactionFormProps {
   selectedMonth: Date;
 }
 
-
 export function TransactionForm({ onClose, initialData, selectedMonth, }: TransactionFormProps) {
   const { form, onSubmit, isPending, serverError } = useFormTransactionController({
     initialData,
     selectedMonth,
     onClose,
-  });
+  })
+
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -103,7 +107,12 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                }}
+                value={field.value as string}
+              >
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione um tipo" />
@@ -129,6 +138,85 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => {
+            // 🔑 Observa o tipo DENTRO da função de renderização
+            const watchedType = form.watch('type') as TransactionType | '';
+
+            // Recalcula as categorias filtradas aqui
+            const watchedFilteredCategories = watchedType !== ""
+              ? categories.filter(
+                (category) => category.type === watchedType
+              )
+              : [];
+
+            // Lógica de limpeza (portada para cá):
+            // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+            // biome-ignore lint/correctness/useHookAtTopLevel: <explanation>
+            useEffect(() => {
+              const currentCategoryId = form.getValues('categoryId');
+
+              const categoryExists = watchedFilteredCategories.some(
+                (category) => category.id === currentCategoryId
+              );
+
+              // Limpa se a categoria for inválida para o novo tipo
+              if (currentCategoryId && !categoryExists) {
+                form.setValue('categoryId', '', { shouldValidate: true });
+                console.log(`Categoria ${currentCategoryId} limpa após a mudança de tipo.`);
+              }
+              // biome-ignore lint/correctness/useExhaustiveDependencies: watchedType e o array são o gatilho
+            }, [watchedType, watchedFilteredCategories, form.setValue, form.getValues]);
+
+            if (!watchedType) {
+              return <></>;
+            }
+
+            if (isLoadingCategories) {
+              return (
+                <FormItem>
+                  <FormLabel>Categoria</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Carregando categorias...</span>
+                  </div>
+                </FormItem>
+              );
+            }
+
+            return (
+              <FormItem>
+                <FormLabel>Categoria</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value as string}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {watchedFilteredCategories.length > 0 ? (
+                      watchedFilteredCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        Nenhuma categoria para este tipo.
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
         {/* Campo Date */}
         <FormField
           control={form.control}

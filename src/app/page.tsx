@@ -51,16 +51,29 @@ export default function OrganifyLandingPage() {
           <div className="text-xl sm:text-2xl font-bold text-primary">
             Organify <span className="text-sm font-normal text-primary-foreground">App</span>
           </div>
-          <Button
-            asChild
-            // Aumenta o tamanho do botão em ecrãs maiores
-            size="sm"
-            className="h-9 px-3 sm:h-10 sm:px-4 sm:text-base text-sm"
-          >
-            <Link href={'/signIn'}>
-              Começar Meu Teste Grátis
-            </Link>
-          </Button>
+          <div className="flex items-center justify-center gap-1.5">
+            <Button
+              asChild
+              // Aumenta o tamanho do botão em ecrãs maiores
+              size="sm"
+              className="h-9 px-3 sm:h-10 sm:px-4 sm:text-base text-sm"
+            >
+              <Link href={'/register'}>
+                Teste Grátis
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant={'outline'}
+              size="sm"
+              className="h-9 px-3 sm:h-10 sm:px-4 sm:text-base text-sm"
+            >
+              <Link href={'/signIn'}>
+                Fazer login
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
