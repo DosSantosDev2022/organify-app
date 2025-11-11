@@ -8,12 +8,15 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-
+    "seed": "ts-node prisma/seed.ts",
     "db:setup": "pnpm db:migrate && pnpm db:generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev --schema prisma/schema.prisma",
-    "db:push":    "dotenv -e .env -- prisma db push --schema prisma/schema.prisma",
-    "db:generate":"dotenv -e .env -- prisma generate --schema prisma/schema.prisma"
-   
+    "db:migrate-deploy": "dotenv -e .env -- prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate-resolve": "dotenv -e .env -- prisma migrate resolve --applied 20251108123916_add_schemas --schema prisma/schema.prisma",
+    "db:push": "dotenv -e .env -- prisma db push --schema prisma/schema.prisma",
+    "db:generate": "dotenv -e .env -- prisma generate --schema prisma/schema.prisma",
+    "db:reset": "dotenv -e .env -- prisma migrate reset --schema prisma/schema.prisma",
+    "db:create-only": "dotenv -e .env -- prisma migrate dev --create-only --schema prisma/schema.prisma"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -45,6 +48,7 @@
     "react-icons": "^5.5.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "ts-node": "^10.9.2",
     "zod": "^4.1.12"
   },
   "devDependencies": {

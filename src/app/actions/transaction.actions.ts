@@ -37,7 +37,7 @@ export async function createTransaction(data: TransactionData) {
     };
   }
 
-  const { amount, date, description, type } = validation.data;
+  const { amount, date, description, type,categoryId } = validation.data;
 
   try {
     // 2. Converter o valor para centavos (ex: 10.50 -> 1050)
@@ -50,6 +50,7 @@ export async function createTransaction(data: TransactionData) {
         amount: amountInCents,
         date: date,
         type: type,
+        categoryId: categoryId === "" ? undefined : categoryId,
         userId: userId,
       },
     });
@@ -86,6 +87,9 @@ export async function getTransactions(
           gte: startDate, // gte = 'maior ou igual a'
           lte: endDate, // lte = 'menor ou igual a'
         },
+      },
+      include: {
+        category: true, 
       },
       orderBy: {
         date: "desc",
@@ -181,7 +185,7 @@ export async function updateTransaction(
     return { success: false, error: validation.error.format() };
   }
 
-  const { amount, date, description, type } = validation.data;
+  const { amount, date, description, type,categoryId } = validation.data;
 
   try {
     // Converte para centavos
@@ -194,6 +198,7 @@ export async function updateTransaction(
         amount: amountInCents,
         date: date,
         type: type,
+        categoryId: categoryId === "" ? undefined : categoryId,
       },
     });
 

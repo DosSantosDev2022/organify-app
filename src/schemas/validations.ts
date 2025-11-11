@@ -4,27 +4,31 @@ import { TransactionType } from "@prisma/client";
 
 export const transactionSchema = z.object({
   description: z.string().min(3, {
-    message: "Description must be at least 3 characters.",
+    message: "A descrição deve ter no mínimo 3 caracteres.",
   }),
 
   amount: z
     .any()
     .refine(
       (val) => val !== undefined && val !== null && val !== "",
-      "Amount is required."
+      "É necessário informar o valor."
     )
     .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val), "Amount must be a number.")
-    .refine((val) => val > 0, "Amount must be greater than 0."),
+    .refine((val) => !isNaN(val), "O valor deve ser um número.")
+    .refine((val) => val > 0, "O valor deve ser maior que 0."),
 
   date: z.date({
-    error: "A date is required.",
+    error: "A data é obrigatória.",
   }),
 
   // Garante que o tipo seja um dos valores do nosso Enum do Prisma
-  type: z.nativeEnum(TransactionType, {
-    error: "Please select a type.",
-  }),
+  type: z.enum(TransactionType, {
+      // Usamos 'message' para simplificar o tratamento de erros
+      message: "O tipo de transação é obrigatório e deve ser válido.", 
+    }
+  ),
+
+  categoryId: z.string().min(1, "Categoria é obrigatória"),
 });
 
 // Vamos também exportar o tipo inferido para usar nos nossos componentes

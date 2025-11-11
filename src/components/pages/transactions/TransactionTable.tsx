@@ -8,18 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Transaction } from "@prisma/client";
+import { Category, Transaction } from "@prisma/client";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button } from "@/components/ui";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button, Badge } from "@/components/ui";
 
 // A "Transaction" do Prisma tem 'amount' como Int (centavos)
 // Mas a nossa 'getTransactions' action já converte para número (reais)
 // Então vamos criar um tipo para a prop que espera 'amount' como número.
 export type TransactionFromApi = Omit<Transaction, "amount"> & {
   amount: number;
+  category: Category | null;
+  categoryId: string | null;
 };
 
 interface TransactionTableProps {
@@ -40,6 +42,7 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
         <TableRow>
           <TableHead className="w-[180px]">Data</TableHead>
           <TableHead className="">Descrição</TableHead>
+          <TableHead className="">Categoria</TableHead>
           <TableHead className="text-right">Valor</TableHead>
           <TableHead className="text-right">Ações</TableHead>
         </TableRow>
@@ -58,6 +61,11 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
                 {format(new Date(tx.date), "dd/MM/yyyy", { locale: ptBR })}
               </TableCell>
               <TableCell className="font-medium">{tx.description}</TableCell>
+              <TableCell className="font-medium">
+                <Badge variant={'outline'}>
+                  {tx.category ? tx.category.name : 'Sem Categoria'}
+                </Badge>
+              </TableCell>
               <TableCell className="text-right">
                 {formatCurrency(tx.amount)}
               </TableCell>
