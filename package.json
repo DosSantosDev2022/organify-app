@@ -11,6 +11,8 @@
     "seed": "ts-node prisma/seed.ts",
     "db:setup": "pnpm db:migrate && pnpm db:generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev --schema prisma/schema.prisma",
+    "db:migrate-deploy": "dotenv -e .env -- prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate-resolve": "dotenv -e .env -- prisma migrate resolve --applied 20251108123916_add_schemas --schema prisma/schema.prisma",
     "db:push": "dotenv -e .env -- prisma db push --schema prisma/schema.prisma",
     "db:generate": "dotenv -e .env -- prisma generate --schema prisma/schema.prisma",
     "db:reset": "dotenv -e .env -- prisma migrate reset --schema prisma/schema.prisma",
