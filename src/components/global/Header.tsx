@@ -1,3 +1,5 @@
+import { LogoApp } from "./logo"
+import { SideBar } from "./sidebar"
 import { ThemeButton } from "./ThemeButton"
 import { UserAvatar } from "./UserAvatar"
 
@@ -6,10 +8,11 @@ const Header = () => {
     <header className="mb-6 sm:mb-8 border-b pb-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Organify App</h1>
+          <LogoApp />
         </div>
 
         <div className="flex items-center gap-2.5">
+          <SideBar />
           <ThemeButton />
           <UserAvatar />
         </div>

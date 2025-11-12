@@ -10,15 +10,11 @@ import {
 import { useState } from "react";
 import { TransactionType } from "@prisma/client";
 import { startOfMonth } from "date-fns";
-import { Header } from "@/components/global";
 
 export default function TransactionPage() {
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   return (
-    <main className="container mx-auto p-4 lg:p-8">
-      {/* Cabeçalho (sem alteração) */}
-      <Header />
-
+    <div>
       {/* --- NOVO COMPONENTE --- */}
       <MonthSelector
         selectedMonth={selectedMonth}
@@ -85,6 +81,6 @@ export default function TransactionPage() {
           </TabsContent>
         </Tabs>
       </section>
-    </main>
+    </div>
   );
 }
