@@ -23,6 +23,7 @@ export const getEmptyValues = (selectedMonth: Date): TransactionSchema => ({
   amount: undefined as any,
   date: selectedMonth,
   type: "INCOME",
+  status:"PENDING",
   categoryId: "",
 });
 
