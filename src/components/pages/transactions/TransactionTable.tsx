@@ -8,12 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Category, Transaction } from "@prisma/client";
+import { Category, Transaction, } from "@prisma/client";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button, Badge } from "@/components/ui";
+import { formatStatus } from "@/utils/formatters";
 
 // A "Transaction" do Prisma tem 'amount' como Int (centavos)
 // Mas a nossa 'getTransactions' action já converte para número (reais)
@@ -43,6 +44,7 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
           <TableHead className="w-[180px]">Data</TableHead>
           <TableHead className="">Descrição</TableHead>
           <TableHead className="">Categoria</TableHead>
+          <TableHead className="">Status</TableHead>
           <TableHead className="text-right">Valor</TableHead>
           <TableHead className="text-right">Ações</TableHead>
         </TableRow>
@@ -64,6 +66,11 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
               <TableCell className="font-medium">
                 <Badge variant={'outline'}>
                   {tx.category ? tx.category.name : 'Sem Categoria'}
+                </Badge>
+              </TableCell>
+              <TableCell className="font-medium">
+                <Badge variant={'outline'}>
+                  {formatStatus(tx.status)}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">

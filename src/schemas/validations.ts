@@ -1,6 +1,6 @@
 // lib/validations.ts
 import { z } from "zod";
-import { TransactionType } from "@prisma/client";
+import { TransactionStatus, TransactionType } from "@prisma/client";
 
 export const transactionSchema = z.object({
   description: z.string().min(3, {
@@ -21,12 +21,20 @@ export const transactionSchema = z.object({
     error: "A data é obrigatória.",
   }),
 
+  status: z.enum(TransactionStatus, {
+      // Usamos 'message' para simplificar o tratamento de erros
+      message: "O status de transação é obrigatório e deve ser válido.", 
+    },
+  ),
+
   // Garante que o tipo seja um dos valores do nosso Enum do Prisma
   type: z.enum(TransactionType, {
       // Usamos 'message' para simplificar o tratamento de erros
       message: "O tipo de transação é obrigatório e deve ser válido.", 
-    }
+    },
   ),
+
+  
 
   categoryId: z.string().min(1, "Categoria é obrigatória"),
 });
