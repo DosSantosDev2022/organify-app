@@ -1,6 +1,6 @@
 // components/TransactionForm.tsx
 "use client";
-import { TransactionType } from "@prisma/client";
+import { TransactionType, TransactionStatus } from "@prisma/client";
 import {
   Form,
   FormControl,
@@ -18,9 +18,12 @@ import {
   PopoverTrigger,
   Button,
   Input,
-  Calendar
+  Calendar,
+  Alert,
+  AlertTitle,
+  AlertDescription,
 } from "@/components/ui";;
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { AlertTriangle, CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useFormTransactionController } from "@/hooks/transactions";
@@ -28,6 +31,7 @@ import { TransactionFromApi } from "./TransactionTable";
 import { ptBR } from "date-fns/locale";
 import { useEffect } from "react";
 import { useCategories } from "@/hooks/transactions/use-categories";
+import Link from "next/link";
 // Prop para que o formulário possa fechar o modal
 interface TransactionFormProps {
   onClose: () => void;
@@ -43,6 +47,42 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
   })
 
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+
+  // Verifica se o carregamento terminou e não há categorias
+  const hasNoCategories = !isLoadingCategories && categories.length === 0;
+
+  // Renderiza um aviso se não houver categorias
+  if (isLoadingCategories) {
+    return (
+      <div className="flex justify-center p-6">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        <p className="text-muted-foreground">Carregando dados...</p>
+      </div>
+    );
+  }
+
+  // Bloco para mostrar o aviso e impedir o formulário de quebrar
+  if (hasNoCategories) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Nenhuma Categoria Encontrada !</AlertTitle>
+        <AlertDescription>
+          <div className="space-y-3">
+            <p>
+              Para cadastrar uma transação, você precisa primeiro cadastrar pelo menos uma categoria.
+            </p>
+            <Link href="/categories" passHref>
+              <Button variant="destructive" className="w-full sm:w-auto">
+                Ir para Categorias
+              </Button>
+            </Link>
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
 
   return (
     <Form {...form}>
@@ -217,6 +257,43 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
             );
           }}
         />
+
+        {/* Campo status */}
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                }}
+                value={field.value as string}
+              >
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione um tipo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={TransactionStatus.RECEIVED}>
+                    Recebido
+                  </SelectItem>
+                  <SelectItem value={TransactionStatus.PENDING}>
+                    Pendente
+                  </SelectItem>
+                  <SelectItem value={TransactionStatus.PAID}>
+                    Pago
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Campo Date */}
         <FormField
           control={form.control}

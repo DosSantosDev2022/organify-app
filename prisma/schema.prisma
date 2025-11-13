@@ -25,6 +25,7 @@ model User {
 
   // Relation to the business this user owns
   transactions  Transaction[]
+  categories      Category[]
   createdAt DateTime  @default(now()) @db.Timestamp(3)
   updatedAt DateTime  @updatedAt @db.Timestamp(3)
 }
@@ -72,16 +73,27 @@ enum TransactionType {
   INVESTMENT
 }
 
+enum TransactionStatus {
+  RECEIVED
+  PENDING
+  PAID
+}
+
 model Category {
   id String @id @default(cuid())
-  name String @unique // Nome da categoria (ex: Salário, Aluguel, Supermercado)
+  name String
+  normalizedName String
   type TransactionType // Tipo de transação a que esta categoria pertence
-
   // Relacionamento com as transações
   transactions Transaction[]
 
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now()) @db.Timestamp(3)
   updatedAt DateTime @updatedAt @db.Timestamp(3)
+
+  @@unique([userId, normalizedName])
 }
 
 // Modelo principal de transações
@@ -91,7 +103,7 @@ model Transaction {
   amount      Int     // Usamos INT para valores monetários
   date        DateTime @db.Timestamp(3)
   type        TransactionType // Referencia o nosso enum
-
+  status      TransactionStatus @default(PENDING)
   categoryId  String?
   category Category? @relation(fields: [categoryId], references: [id])
 

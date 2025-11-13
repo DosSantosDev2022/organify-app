@@ -20,6 +20,12 @@ const categoryTypeMap: { [key: string]: string } = {
   'DEBT': 'DÍVIDA',
 };
 
+const statusTypeMap: { [key: string]: string } = {
+  'RECEIVED': 'Recebido',
+  'PENDING': 'Pendente',
+  'PAID': 'Pago',
+};
+
 /**
  * Converte a chave da categoria (ex: 'FIXED_EXPENSE') para o nome amigável (ex: 'DESPESA FIXA').
  * @param type A chave do tipo de categoria vinda do banco de dados.
@@ -31,4 +37,18 @@ export function formatCategoryType(type: string): string {
   
   // Retorna o valor mapeado, ou a chave original como fallback (caso um novo tipo seja adicionado e não mapeado)
   return categoryTypeMap[key] || type;
+}
+
+
+/**
+ * Converte a chave do status (ex: 'PAID') para o nome amigável (ex: 'PAGO').
+ * @param type A chave do tipo de categoria vinda do banco de dados.
+ * @returns O nome da categoria formatado ou a chave original se não houver mapeamento.
+ */
+export function formatStatus(type: string): string {
+  // Converte a chave para maiúsculas antes de buscar, para garantir a consistência
+  const key = type.toUpperCase();
+  
+  // Retorna o valor mapeado, ou a chave original como fallback (caso um novo tipo seja adicionado e não mapeado)
+  return statusTypeMap[key] || type;
 }

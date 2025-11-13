@@ -38,6 +38,7 @@ const categoryTypeOptions = [
 ];
 
 
+
 const CategoriesPage = () => {
   const {
     categoriesList, isLoading,
@@ -46,7 +47,7 @@ const CategoriesPage = () => {
     isAlertOpen, categoryToDelete, isMutating,
     deleteIsPending, deleteMutationVariables,
     handleCloseDialog, handleEditClick, handleAddOrUpdateCategory,
-    handleDeleteClick, handleConfirmDelete, handleCloseAlert
+    handleDeleteClick, handleConfirmDelete, handleCloseAlert,
   } = useCategoryController();
 
   // --- Renderização do Componente ---
@@ -118,7 +119,6 @@ const CategoriesPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-
             </div>
 
             <DialogFooter>

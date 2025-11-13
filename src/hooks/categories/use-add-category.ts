@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 // Importar a nova Server Action
 import { createCategory } from "@/app/actions/category.actions"; 
-type CategoryCreatePayload = { name: string; type: string };
+type CategoryCreatePayload = { name: string; type: string};
 
 /**
  * Hook para Criação de Categoria.

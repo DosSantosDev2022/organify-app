@@ -3,9 +3,11 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui"
-import { LogoApp } from "./logo"
+
 import {
   Menu,
   Wallet,
@@ -39,11 +41,13 @@ const SideBar = () => {
 
       {/* 2. O conteúdo da nossa nova barra lateral */}
       <SheetContent side="left" className="w-64 flex flex-col p-4 sm:w-80">
-
+        <SheetHeader>
+          <SheetTitle className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Organify App
+          </SheetTitle>
+        </SheetHeader>
         {/* LOGO E TÍTULO */}
-        <div className="flex items-center space-x-2 border-b pb-4 mb-4">
-          <LogoApp />
-        </div>
+
 
         {/* SEÇÃO DE LINKS DE NAVEGAÇÃO */}
         <nav className="flex flex-col space-y-2 flex-1">

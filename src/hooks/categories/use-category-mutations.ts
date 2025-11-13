@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCategory, deleteCategory } from "@/app/actions/category.actions"; // Importar as Server Actions
 
 // Tipos baseados na sua estrutura
-type CategoryUpdatePayload = { id: string; name: string; type: string };
+type CategoryUpdatePayload = { id: string; name: string; type: string};
 type CategoryDeletePayload = { id: string };
 
 /**
