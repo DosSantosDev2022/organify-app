@@ -12,10 +12,10 @@ import {
   Menu,
   Wallet,
   Tag,
-  ArrowDownCircle,
   ArrowUpCircle,
   TrendingUp,
   BarChart2,
+  ShoppingBag,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -23,7 +23,7 @@ import Link from "next/link"
 const navLinks = [
   { href: "/transactions", label: "Transações", icon: Wallet },
   { href: "/categories", label: "Categorias", icon: Tag },
-  { href: "#", label: "Despesas Fixas", icon: ArrowDownCircle },
+  { href: "/plan-purchases", label: "Planejar compras", icon: ShoppingBag },
   { href: "#", label: "Despesas Variáveis", icon: ArrowUpCircle }, // Usei ArrowUpCircle, mas você pode mudar para algo como PiggyBank
   { href: "#", label: "Investimentos", icon: TrendingUp },
   { href: "#", label: "Relatórios", icon: BarChart2 },
