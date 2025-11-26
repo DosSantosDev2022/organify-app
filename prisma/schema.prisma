@@ -25,6 +25,7 @@ model User {
 
   // Relation to the business this user owns
   transactions  Transaction[]
+  plannedPurchases PlannedPurchase[]
   categories      Category[]
   createdAt DateTime  @default(now()) @db.Timestamp(3)
   updatedAt DateTime  @updatedAt @db.Timestamp(3)
@@ -112,4 +113,24 @@ model Transaction {
 
   createdAt DateTime @default(now()) @db.Timestamp(3)
   updatedAt DateTime @updatedAt @db.Timestamp(3)
+}
+
+model PlannedPurchase {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  amount      Int      // Valor em centavos (Ex: R$ 10,00 = 1000)
+  deadline    DateTime @db.Timestamp(3)
+  status      PlannedPurchaseStatus @default(PENDING)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @db.Timestamp(3)
+  updatedAt   DateTime @updatedAt @db.Timestamp(3)
+}
+
+enum PlannedPurchaseStatus {
+  PENDING
+  PURCHASED
 }
