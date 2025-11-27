@@ -9,13 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 
 // Novo componente de Formulário
-import { PlannedPurchaseFormDialog } from "@/components/pages/planned-purchases/PlannedPurchaseFormDialog"; // Ajuste o caminho
+import { PlannedPurchaseFormDialog } from "@/components/pages/planned-purchases/PlannedPurchaseFormDialog";
 
 // Hook Controller
 import { usePlannedPurchasesController } from "@/hooks/planned-purchases/use-planned-purchases-controller";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui";
 import { useMemo } from "react";
-import { PlannedPurchase } from "@prisma/client";
 
 export default function PlanejarComprasPage() {
   // Chamada única do hook
@@ -41,48 +40,51 @@ export default function PlanejarComprasPage() {
 
 
   return (
-    <div className="p-6 space-y-6 text-foreground bg-background min-h-screen">
+    <div className="p-4 md:p-6 space-y-6 text-foreground bg-background min-h-screen">
+      {/* Ajuste: p-4 em mobile, p-6 em desktop */}
 
-      {/* --- Cabeçalho e Navegação (Inalterados) --- */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Planejar Compras</h1>
-          <p className="text-muted-foreground">Organize seus objetivos de compra mês a mês.</p>
+      {/* --- Cabeçalho e Navegação: FLEX-WRAP em Mobile --- */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Bloco do Título */}
+        <div className="w-full sm:w-auto">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Planejar Compras</h1> {/* Tamanho de texto ajustado */}
+          <p className="text-sm text-muted-foreground">Organize seus objetivos de compra mês a mês.</p>
         </div>
 
-        <div className="flex items-center gap-4 p-2">
+        {/* Bloco de Navegação */}
+        <div className="flex items-center justify-between sm:justify-end gap-4 p-1 sm:p-2 w-full sm:w-auto">
           <Button variant="outline" size="icon" onClick={handlePrevMonth}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="font-semibold text-lg capitalize w-48 text-center block">
+          <span className="font-semibold text-base md:text-lg capitalize text-center block truncate">
             {currentMonthFormatted}
           </span>
           <Button variant="outline" size="icon" onClick={handleNextMonth}><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      {/* --- Cards de Resumo (Inalterados) --- */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* --- Cards de Resumo: GRID RESPONSIVO --- */}
+      <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-3"> {/* Alterado de 2 colunas para 3 a partir de md */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Planejado</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Planejado</CardTitle>
             <span className="text-muted-foreground">R$</span>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 md:pt-3">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-              <div className="text-2xl font-bold">{formatCurrency(totalPlanned)}</div>
+              <div className="text-xl md:text-2xl font-bold">{formatCurrency(totalPlanned)}</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-emerald-950/20 border-emerald-900/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-500">Já Comprado</CardTitle>
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
+        <Card className="bg-success/20 dark:bg-success/90">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Já Comprado</CardTitle>
+            <CheckCircle className="h-4 w-4 text-success-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 md:pt-3">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-emerald-500" /> : (
               <>
-                <div className="text-2xl font-bold text-emerald-500">{formatCurrency(totalPurchased)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xl md:text-2xl font-bold text-success-foreground">{formatCurrency(totalPurchased)}</div>
+                <p className="text-xs text-foreground mt-1">
                   {purchasedCount} itens concluídos
                 </p>
               </>
@@ -91,22 +93,22 @@ export default function PlanejarComprasPage() {
         </Card>
       </div>
 
-      {/* --- BOTÃO DE AÇÃO (Renderiza o Novo Componente) --- */}
+      {/* --- BOTÃO DE AÇÃO: Sempre visível, alinhado à direita --- */}
       <div className="flex justify-end">
-        <Button onClick={handleNewItemClick} className="gap-2">
+        <Button onClick={handleNewItemClick} className="gap-2 w-full sm:w-auto"> {/* w-full em mobile */}
           <PlusCircle className="h-4 w-4" /> Novo Plano
         </Button>
 
         <PlannedPurchaseFormDialog
           isDialogOpen={isDialogOpen}
           selectedMonth={selectedMonth}
-          setIsDialogOpen={setIsDialogOpen} // Chama o handler de fechar/limpar
-          initialData={itemToEdit} // Item para pré-preencher em caso de edição
+          setIsDialogOpen={setIsDialogOpen}
+          initialData={itemToEdit}
         />
       </div>
 
-      {/* --- Tabela: Agora com Edição na Linha --- */}
-      <div className="rounded-md border border-border bg-card">
+      {/* --- TABELA DE ITENS (Desktop/Tablet) --- */}
+      <div className="hidden md:block rounded-md border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -118,6 +120,7 @@ export default function PlanejarComprasPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {/* Conteúdo da tabela (inalterado) */}
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
@@ -134,7 +137,7 @@ export default function PlanejarComprasPage() {
                   key={item.id}
                   className={item.status === 'PURCHASED' ? 'bg-muted/30' : 'cursor-pointer hover:bg-muted/50'}
                 >
-                  {/* Células de dados que podem disparar a edição ao clicar */}
+                  {/* Células da Tabela (inalteradas, mas ocultas em mobile) */}
                   <TableCell onClick={() => handleEditItem(item)} className="cursor-pointer">
                     <div className="flex flex-col">
                       <span className={`font-medium ${item.status === 'PURCHASED' ? 'line-through text-muted-foreground' : ''}`}>
@@ -150,7 +153,7 @@ export default function PlanejarComprasPage() {
 
                   <TableCell className="text-center">
                     <button
-                      onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }} // Impedir edição na linha
+                      onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
                       className="cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full"
                       title="Clique para alterar status"
                       type="button"
@@ -165,12 +168,11 @@ export default function PlanejarComprasPage() {
 
 
                   <TableCell className="text-right space-x-2">
-                    {/* Botão de Edição explícito */}
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={(e) => {
-                        e.stopPropagation(); // Impedir a edição da linha
+                        e.stopPropagation();
                         handleEditItem(item);
                       }}
                       title="Editar item"
@@ -178,12 +180,11 @@ export default function PlanejarComprasPage() {
                       <Edit className="h-4 w-4" />
                     </Button>
 
-                    {/* Botão de Deleção */}
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={(e) => {
-                        e.stopPropagation(); // Impedir a edição da linha
+                        e.stopPropagation();
                         handleDeleteItemClick(item.id)
                       }}
                       className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
@@ -199,7 +200,92 @@ export default function PlanejarComprasPage() {
         </Table>
       </div>
 
-      {/* --- ALERT DIALOG DE CONFIRMAÇÃO --- */}
+      {/* --- CARDS DE ITENS (Mobile) --- */}
+      <div className="md:hidden flex flex-col gap-3">
+        {/* Adiciona o estado de carregamento/vazio também para mobile */}
+        {isLoading ? (
+          <div className="h-24 text-center flex items-center justify-center">
+            <Loader2 className="inline mr-2 h-4 w-4 animate-spin" /> Carregando planos...
+          </div>
+        ) : items.length === 0 ? (
+          <p className="h-24 text-center text-muted-foreground pt-8">Nenhum plano encontrado para este mês.</p>
+        ) : (
+          items.map((item) => (
+            // biome-ignore lint/a11y/useButtonType: <explanation>
+            <button
+              key={item.id}
+              className={`border rounded-lg p-4 shadow-sm ${item.status === 'PURCHASED' ? 'bg-muted/30 border-green-200/50' : 'bg-card'}`}
+              onClick={() => handleEditItem(item)} // Clica no card para editar
+            >
+              <div className="flex justify-between items-start mb-2">
+                {/* Nome e Descrição */}
+                <div className="flex flex-col overflow-hidden mr-4">
+                  <span className={`font-semibold ${item.status === 'PURCHASED' ? 'line-through text-muted-foreground' : ''} truncate`}>
+                    {item.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                </div>
+                {/* Status e Valor */}
+                <div className="text-right flex-shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
+                    className="mb-1 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full"
+                    title="Clique para alterar status"
+                    type="button"
+                  >
+                    {item.status === 'PURCHASED' ? (
+                      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700 text-xs">Comprado</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-yellow-600 border-yellow-600/50 hover:bg-yellow-600/10 text-xs">Pendente</Badge>
+                    )}
+                  </button>
+                  <span className="block font-bold text-base">{formatCurrency(item.amount)}</span>
+                </div>
+              </div>
+
+              {/* Rodapé do Card: Prazo e Ações */}
+              <div className="flex justify-between items-center border-t border-border pt-2 mt-2">
+                <span className="text-xs text-muted-foreground">
+                  Prazo: {new Date(item.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                </span>
+
+                <div className="flex space-x-1 flex-shrink-0">
+                  {/* Botão de Edição explícito (pode ser redundante, mas é bom ter) */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditItem(item);
+                    }}
+                    title="Editar item"
+                    className="h-8 w-8"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+
+                  {/* Botão de Deleção */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteItemClick(item.id)
+                    }}
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                    title="Excluir item"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
+
+      {/* --- ALERT DIALOG DE CONFIRMAÇÃO (INALETRADO) --- */}
       <AlertDialog open={!!itemToDeleteId} onOpenChange={(open) => !open && handleCancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
