@@ -14,6 +14,12 @@ export default withAuth(
     // O status do usuário é acessível via req.nextauth.token
     const token = req.nextauth.token;
 
+   /*  console.log("Middleware Token Status:", {
+      authenticated: !!token,
+      hasCompletedOnboarding: token?.hasCompletedOnboarding,
+      pathname: req.nextUrl.pathname
+    }); */
+
     // 1. O usuário não completou o Onboarding
     const requiresOnboarding = token?.hasCompletedOnboarding === false;
     

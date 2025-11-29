@@ -152,18 +152,26 @@ export default function PlanejarComprasPage() {
                   <TableCell onClick={() => handleEditItem(item)} className="font-medium cursor-pointer">{formatCurrency(item.amount)}</TableCell>
 
                   <TableCell className="text-center">
-                    <button
+                    <div
                       onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
-                      className="cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleStatus(item.id);
+                        }
+                      }}
+                      className="cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full inline-block"
                       title="Clique para alterar status"
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                     >
                       {item.status === 'PURCHASED' ? (
                         <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700 pointer-events-none">Comprado</Badge>
                       ) : (
                         <Badge variant="outline" className="text-yellow-600 border-yellow-600/50 hover:bg-yellow-600/10 pointer-events-none">Pendente</Badge>
                       )}
-                    </button>
+                    </div>
                   </TableCell>
 
 

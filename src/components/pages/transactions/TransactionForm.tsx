@@ -246,9 +246,10 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="placeholder-disabled" disabled>
+                      // para evitar o erro de valor vazio/inválido do SelectItem.
+                      <div className="p-2 text-center text-sm text-muted-foreground">
                         Nenhuma categoria para este tipo.
-                      </SelectItem>
+                      </div>
                     )}
                   </SelectContent>
                 </Select>
