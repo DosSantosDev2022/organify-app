@@ -110,28 +110,22 @@ export async function getTransactions(
 }
 
 
-// --- FUNÇÃO PARA BUSCAR SOMA DOS RESUMOS  ---
-export async function getSummaryTotals(
-  selectedDate: Date // <-- NOVO PARÂMETRO
-) {
+// --- FUNÇÃO PARA BUSCAR SOMA DOS RESUMOS (MENSAL) ---
+export async function getSummaryTotals(selectedDate: Date) {
 
   try {
     const userId = await getAuthenticatedUserId();
     const startDate = startOfMonth(selectedDate);
     const endDate = endOfMonth(selectedDate);
 
+    // Consulta que INCLUI TODOS os tipos para que possamos extrair 'INVESTMENT'
     const summaryData = await db.transaction.groupBy({
       by: ["type"],
-      _sum: {
-        amount: true,
-      },
-      // Adiciona o filtro de data aqui
+      _sum: { amount: true },
       where: {
         userId: userId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
+        date: { gte: startDate, lte: endDate },
+        // IMPORTANTE: NÃO HÁ FILTRO 'NOT' AQUI!
       },
     });
 
@@ -139,6 +133,7 @@ export async function getSummaryTotals(
       income: 0,
       fixedExpense: 0,
       variableExpense: 0,
+      investment: 0 // Valor mensal do investimento
     };
     for (const item of summaryData) {
       const amountInReais = (item._sum.amount || 0) / 100;
@@ -152,20 +147,75 @@ export async function getSummaryTotals(
         case TransactionType.VARIABLE_EXPENSE:
           totals.variableExpense = amountInReais;
           break;
+        case TransactionType.INVESTMENT:
+          totals.investment = amountInReais; // Captura o valor
+          break;
       }
     }
+    
+    // CÁLCULO DO SALDO MENSAL (FLUXO DE CAIXA): Investment NÃO é incluído
     const balance =
       totals.income -
       totals.fixedExpense -
-      totals.variableExpense
+      totals.variableExpense -
+      totals.investment
 
     return {
       success: true,
-      data: { ...totals, balance },
+      data: { ...totals, balance }, // Retorna o saldo (sem investimento) e o total de investimento mensal
     };
   } catch (error) {
     console.error("Error fetching summary totals:", error);
     return { success: false, error: "Failed to fetch summary." };
+  }
+}
+
+// --- FUNÇÃO PARA SALDO ACUMULADO (RUNNING BALANCE) ---
+export async function getRunningBalance(selectedDate: Date) {
+  try {
+    const userId = await getAuthenticatedUserId();
+    const endDate = endOfMonth(selectedDate);
+    
+    // Executa 4 agregações: 3 para o Saldo e 1 para o Investimento
+    const [
+      totalIncome,
+      totalFixedExpense,
+      totalVariableExpense,
+      totalInvestment,
+    ] = await db.$transaction([
+      db.transaction.aggregate({ _sum: { amount: true }, where: { userId, type: TransactionType.INCOME, date: { lte: endDate } } }),
+      db.transaction.aggregate({ _sum: { amount: true }, where: { userId, type: TransactionType.FIXED_EXPENSE, date: { lte: endDate }, NOT: { 
+          type: TransactionType.INVESTMENT 
+      } } }),
+      db.transaction.aggregate({ _sum: { amount: true }, where: { userId, type: TransactionType.VARIABLE_EXPENSE, date: { lte: endDate }, NOT: { 
+          type: TransactionType.INVESTMENT 
+      } } }),
+      db.transaction.aggregate({ _sum: { amount: true }, where: { userId, type: TransactionType.INVESTMENT, date: { lte: endDate } } }),
+    ]);
+
+    const income = totalIncome._sum.amount || 0;
+    const fixed = totalFixedExpense._sum.amount || 0;
+    const variable = totalVariableExpense._sum.amount || 0;
+    const investment = totalInvestment._sum.amount || 0;
+
+    // CÁLCULO DO SALDO ACUMULADO (FLUXO DE CAIXA): Investment NÃO é incluído
+    const balanceInCents = income - fixed - variable - investment;
+    const balanceInReais = balanceInCents / 100;
+
+    // Valor do investimento acumulado
+    const investmentInReais = investment / 100;
+
+    // Retorna o objeto completo com os dois saldos
+    return { 
+        success: true, 
+        data: { 
+            runningBalance: balanceInReais, // Saldo principal
+            investmentTotal: investmentInReais // Total Investido
+        } 
+    };
+  } catch (error) {
+    console.error("Error fetching running balance:", error);
+    return { success: false, error: "Failed to fetch running balance." };
   }
 }
 
@@ -223,76 +273,5 @@ export async function deleteTransaction(id: string) {
   } catch (error) {
     console.error("Error deleting transaction:", error);
     return { success: false, error: "Failed to delete transaction." };
-  }
-}
-
-export async function getRunningBalance(selectedDate: Date) {
-  
-
-  try {
-
-    const userId = await getAuthenticatedUserId();
-  // Queremos o saldo total até o FIM do mês selecionado
-  const endDate = endOfMonth(selectedDate);
-    // Usamos $transaction para executar todas as consultas em
-    // uma única transação de banco de dados.
-    const [
-      totalIncome,
-      totalFixedExpense,
-      totalVariableExpense,
-     /*  totalInvestment, */
-    ] = await db.$transaction([
-      // 1. Soma de todas as Receitas até a data
-      db.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          userId: userId,
-          type: TransactionType.INCOME,
-          date: { lte: endDate }, // lte = menor ou igual a
-        },
-      }),
-      // 2. Soma de todas as Despesas Fixas até a data
-      db.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          userId: userId,
-          type: TransactionType.FIXED_EXPENSE,
-          date: { lte: endDate },
-        },
-      }),
-      // 3. Soma de todas as Despesas Variáveis até a data
-      db.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          userId: userId,
-          type: TransactionType.VARIABLE_EXPENSE,
-          date: { lte: endDate },
-        },
-      }),
-      // 4. Soma de todos os Investimentos até a data
-      /* db.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          userId: userId,
-          type: TransactionType.INVESTMENT,
-          date: { lte: endDate },
-        },
-      }), */
-    ]);
-
-    // Extrai os valores (em centavos)
-    const income = totalIncome._sum.amount || 0;
-    const fixed = totalFixedExpense._sum.amount || 0;
-    const variable = totalVariableExpense._sum.amount || 0;
-    /* const investment = totalInvestment._sum.amount || 0; */
-
-    // Calcula o saldo final e converte de volta para Reais
-    const balanceInCents = income - fixed - variable  /* investment; */
-    const balanceInReais = balanceInCents / 100;
-
-    return { success: true, data: balanceInReais };
-  } catch (error) {
-    console.error("Error fetching running balance:", error);
-    return { success: false, error: "Failed to fetch running balance." };
   }
 }

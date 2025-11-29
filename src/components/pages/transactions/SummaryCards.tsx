@@ -17,6 +17,7 @@ import {
   ShoppingCart,
   Scale,
   Wallet,
+  Briefcase,
 } from "lucide-react";
 import React from "react";
 
@@ -26,8 +27,14 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
   const { summary, isLoading: isLoadingSummary } = useGetSummary(selectedMonth);
-  const { balance: runningBalance, isLoading: isLoadingBalance } =
+
+  const { data: runningBalanceData, isLoading: isLoadingBalance } =
     useGetRunningBalance(selectedMonth);
+
+  // DESESTRUTURAÇÃO CORRETA:
+  const runningBalance = runningBalanceData?.runningBalance; // Saldo de Fluxo de Caixa Acumulado
+  const investmentAccumulated = runningBalanceData?.investmentTotal; // Total Investido Acumulado
+
 
   // Função auxiliar para renderizar o card
   const renderCard = (
@@ -38,6 +45,7 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
     IconComponent: React.ElementType
 
   ) => {
+    // ... (renderCard code)
     return (
       <Card className={colorClasses}>
         <CardHeader>
@@ -60,49 +68,35 @@ export function SummaryCards({ selectedMonth }: SummaryCardsProps) {
   };
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
       {renderCard(
-        "Receitas",
-        summary?.income,
-        "text-success bg-success/10 border-success/20",
-        isLoadingSummary,
-        TrendingUp
+        "Receitas", summary?.income, "text-success bg-success/10 border-success/20", isLoadingSummary, TrendingUp
       )}
       {renderCard(
-        "Despesas Fixas",
-        summary?.fixedExpense,
-        "text-destructive bg-destructive/10 border-destructive/20",
-        isLoadingSummary,
-        Receipt,
+        "Despesas Fixas", summary?.fixedExpense, "text-destructive bg-destructive/10 border-destructive/20", isLoadingSummary, Receipt,
       )}
       {renderCard(
-        "Despesas Variáveis",
-        summary?.variableExpense,
-        "text-warning bg-warning/10 border-warning/20",
-        isLoadingSummary,
-        ShoppingCart
-      )}
-      {/*  {renderCard(
-        "Investimentos",
-        summary?.investment,
-        "text-primary bg-primary/10 border-primary/20",
-        isLoadingSummary,
-        Briefcase
-      )} */}
-      {renderCard(
-        "Saldo mês atual",
-        summary?.balance,
-        "text-success bg-success/10 border-success/20",
-        isLoadingSummary,
-        Scale
+        "Despesas Variáveis", summary?.variableExpense, "text-warning bg-warning/10 border-warning/20", isLoadingSummary, ShoppingCart
       )}
 
       {renderCard(
-        "Saldo Acumulado", // <-- Novo card
-        runningBalance, // <-- Valor do novo hook
-        "text-foreground bg-card border-border", // <-- Cor neutra
+        "Saldo mês atual", summary?.balance, "text-success bg-success/10 border-success/20", isLoadingSummary, Scale
+      )}
+
+      {renderCard(
+        "Saldo Acumulado",
+        runningBalance, // <-- Valor do Saldo Acumulado (Exclui Investimento)
+        "text-foreground bg-card border-border",
         isLoadingBalance,
         Wallet
+      )}
+
+      {renderCard(
+        "Total Investido",
+        investmentAccumulated, // <-- Valor do Total Investido Acumulado
+        "text-primary bg-primary/10 border-primary/20",
+        isLoadingBalance,
+        Briefcase
       )}
     </section>
   );
