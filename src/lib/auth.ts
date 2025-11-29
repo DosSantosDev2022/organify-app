@@ -90,20 +90,12 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // Se o usuário já existir no token, adicione o ID
+      // 💡 1. Se o usuário existir (primeiro login ou atualização), anexe o ID.
       if (user) {
         token.id = user.id;
       }
-
-      // Se a sessão foi atualizada no cliente (com update()),
-      // atualize o token com os novos dados
-      if (trigger === "update" && session) {
-        // O Next-Auth passa os dados da atualização na `session` quando o trigger é `update`
-        // Você pode processar esses dados aqui, se necessário, ou
-        // simplesmente forçar uma busca no banco para garantir consistência.
-      }
-
-      // Busca o usuário mais recente no banco de dados para garantir que os dados do token estão sincronizados
+      
+      // 💡 2. Busca o usuário do banco e adiciona o status de assinatura ao JWT
       if (token?.email) {
         const dbUser = await db.user.findUnique({
           where: { email: token.email },
@@ -112,6 +104,8 @@ export const authOptions: AuthOptions = {
             name: true,
             image: true,
             email: true,
+            subscriptionStatus: true, 
+            hasCompletedOnboarding: true,
           },
         });
 
@@ -120,6 +114,8 @@ export const authOptions: AuthOptions = {
           token.name = dbUser.name;
           token.email = dbUser.email;
           token.picture = dbUser.image;
+          token.subscriptionStatus = dbUser.subscriptionStatus; 
+          token.hasCompletedOnboarding = dbUser.hasCompletedOnboarding;
         }
       }
       return token;
@@ -127,17 +123,35 @@ export const authOptions: AuthOptions = {
 
     async session({ session, token }) {
       if (session.user && token) {
-        // Adiciona o ID do token à sessão do usuário
+        // 💡 1. Adiciona os campos atualizados do token à sessão
         session.user.id = token.id as string;
-
-        // Adiciona os campos atualizados do token à sessão
         session.user.name = token.name;
         session.user.email = token.email;
         session.user.image = token.picture;
+        
+        // ⬅️ NOVO: Adiciona o status de assinatura à sessão
+        session.user.subscriptionStatus = token.subscriptionStatus; 
       }
+      
+      // 💡 2. Redirecionamento de Onboarding
+      // Este redirecionamento precisa ser feito no lado do cliente
+      // Usaremos o `session` callback apenas para anexar o status.
+      // A lógica do Next.js (middleware ou componente de Onboarding) 
+      // deve ler este status e redirecionar, se necessário.
+
       return session;
     },
-  },
+
+    async signIn({ user, account, profile }) {
+      // Deixe o signIn callback apenas para verificações de segurança/domínio.
+      // A lógica de Onboarding via status FREE já está coberta, pois o Prisma Adapter 
+      // garante que o novo usuário tenha o status padrão 'FREE'.
+      
+      // O Next-Auth irá para o callbackUrl (se existir) ou para o '/' padrão.
+      // O componente de Onboarding deve então verificar o status.
+      return true; // Sempre permite o login se não houver restrições
+    },
+},
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",

@@ -82,7 +82,7 @@ export function ContributePixModal() {
           {/* Botão Copia e Cola */}
           <Button
             onClick={handleCopy}
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+            className="w-full"
           >
             <Copy className="mr-2 h-4 w-4" />
             Copiar Código PIX (Copia e Cola)

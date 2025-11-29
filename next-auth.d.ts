@@ -1,34 +1,29 @@
-// src/types/next-auth.d.ts
+// types/next-auth.d.ts
 
-import { DefaultSession } from "next-auth";
-import "next-auth/jwt";
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
+import { JWT } from "next-auth/jwt";
+import { SubscriptionStatus } from "@prisma/client"; // Importe o Enum do Prisma
 
+// Estende o objeto User padrão do Next-Auth
 declare module "next-auth" {
-  /**
-   * Estende a interface Session para incluir o accessToken
-   */
-  interface Session extends DefaultSession {
-    accessToken?: string;
-    // O objeto user agora terá um 'id'
+  interface Session {
     user: {
       id: string;
+      subscriptionStatus: SubscriptionStatus;
+      hasCompletedOnboarding:boolean
     } & DefaultSession["user"];
   }
 
-  /**
-   * Estende a interface User para incluir o id
-   */
-  interface User {
-    id: string;
+  interface User extends DefaultUser {
+    subscriptionStatus: SubscriptionStatus;
   }
 }
 
+// Estende o objeto JWT
 declare module "next-auth/jwt" {
-  /**
-   * Estende a interface JWT para incluir o accessToken e o id
-   */
   interface JWT {
-    accessToken?: string;
     id: string;
+    subscriptionStatus: SubscriptionStatus;
+    hasCompletedOnboarding: boolean;
   }
 }

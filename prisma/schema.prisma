@@ -22,13 +22,21 @@ model User {
   passwordHash  String? // Para o Credentials Provider
   accounts      Account[]
   sessions      Session[]
+  subscriptionStatus SubscriptionStatus @default(FREE)
 
+  hasCompletedOnboarding Boolean @default(false)
   // Relation to the business this user owns
   transactions  Transaction[]
   plannedPurchases PlannedPurchase[]
   categories      Category[]
   createdAt DateTime  @default(now()) @db.Timestamp(3)
   updatedAt DateTime  @updatedAt @db.Timestamp(3)
+}
+
+enum SubscriptionStatus {
+  FREE
+  PREMIUM
+  CANCELED
 }
 
 model Account {
