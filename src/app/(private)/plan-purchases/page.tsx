@@ -211,11 +211,20 @@ export default function PlanejarComprasPage() {
           <p className="h-24 text-center text-muted-foreground pt-8">Nenhum plano encontrado para este mês.</p>
         ) : (
           items.map((item) => (
-            // biome-ignore lint/a11y/useButtonType: <explanation>
-            <button
+            <div
               key={item.id}
               className={`border rounded-lg p-4 shadow-sm ${item.status === 'PURCHASED' ? 'bg-muted/30 border-green-200/50' : 'bg-card'}`}
               onClick={() => handleEditItem(item)} // Clica no card para editar
+              tabIndex={0}
+
+              onKeyDown={(e) => {
+                // Verifica se a tecla pressionada é Enter ('13') ou Space ('32')
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault(); // Impede a ação padrão, se houver
+                  handleEditItem(item); // Executa a mesma ação que o onClick
+                }
+              }}
+              role="button"
             >
               <div className="flex justify-between items-start mb-2">
                 {/* Nome e Descrição */}
@@ -226,7 +235,7 @@ export default function PlanejarComprasPage() {
                   <span className="text-xs text-muted-foreground truncate">{item.description}</span>
                 </div>
                 {/* Status e Valor */}
-                <div className="text-right flex-shrink-0">
+                <div className="text-right shrink-0">
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
                     className="mb-1 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full"
@@ -249,7 +258,7 @@ export default function PlanejarComprasPage() {
                   Prazo: {new Date(item.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                 </span>
 
-                <div className="flex space-x-1 flex-shrink-0">
+                <div className="flex space-x-1 shrink-0">
                   {/* Botão de Edição explícito (pode ser redundante, mas é bom ter) */}
                   <Button
                     variant="ghost"
@@ -279,7 +288,7 @@ export default function PlanejarComprasPage() {
                   </Button>
                 </div>
               </div>
-            </button>
+            </div>
           ))
         )}
       </div>

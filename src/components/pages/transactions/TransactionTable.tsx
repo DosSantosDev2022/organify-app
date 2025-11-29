@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button, Badge } from "@/components/ui";
 import { formatStatus } from "@/utils/formatters";
+import { StatusVariant } from "@/utils/status-styles";
 
 // A "Transaction" do Prisma tem 'amount' como Int (centavos)
 // Mas a nossa 'getTransactions' action já converte para número (reais)
@@ -69,7 +70,7 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
                 </Badge>
               </TableCell>
               <TableCell className="font-medium">
-                <Badge variant={'outline'}>
+                <Badge variant={StatusVariant(tx.status)}>
                   {formatStatus(tx.status)}
                 </Badge>
               </TableCell>

@@ -246,7 +246,7 @@ export function TransactionForm({ onClose, initialData, selectedMonth, }: Transa
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="placeholder-disabled" disabled>
                         Nenhuma categoria para este tipo.
                       </SelectItem>
                     )}

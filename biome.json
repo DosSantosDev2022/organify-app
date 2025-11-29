@@ -17,12 +17,16 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "a11y": {
+       "useSemanticElements":"off"
+      },
       "style": {
         "useImportType":"off"
       },
       "recommended": true,
       "suspicious": {
         "noUnknownAtRules": "off",
+        "noArrayIndexKey": "warn",
         "noExplicitAny":"warn"
       }
     },

@@ -139,7 +139,6 @@ export async function getSummaryTotals(
       income: 0,
       fixedExpense: 0,
       variableExpense: 0,
-      investment: 0,
     };
     for (const item of summaryData) {
       const amountInReais = (item._sum.amount || 0) / 100;
@@ -153,16 +152,12 @@ export async function getSummaryTotals(
         case TransactionType.VARIABLE_EXPENSE:
           totals.variableExpense = amountInReais;
           break;
-        case TransactionType.INVESTMENT:
-          totals.investment = amountInReais;
-          break;
       }
     }
     const balance =
       totals.income -
       totals.fixedExpense -
-      totals.variableExpense -
-      totals.investment;
+      totals.variableExpense
 
     return {
       success: true,
@@ -245,7 +240,7 @@ export async function getRunningBalance(selectedDate: Date) {
       totalIncome,
       totalFixedExpense,
       totalVariableExpense,
-      totalInvestment,
+     /*  totalInvestment, */
     ] = await db.$transaction([
       // 1. Soma de todas as Receitas até a data
       db.transaction.aggregate({
@@ -275,24 +270,24 @@ export async function getRunningBalance(selectedDate: Date) {
         },
       }),
       // 4. Soma de todos os Investimentos até a data
-      db.transaction.aggregate({
+      /* db.transaction.aggregate({
         _sum: { amount: true },
         where: {
           userId: userId,
           type: TransactionType.INVESTMENT,
           date: { lte: endDate },
         },
-      }),
+      }), */
     ]);
 
     // Extrai os valores (em centavos)
     const income = totalIncome._sum.amount || 0;
     const fixed = totalFixedExpense._sum.amount || 0;
     const variable = totalVariableExpense._sum.amount || 0;
-    const investment = totalInvestment._sum.amount || 0;
+    /* const investment = totalInvestment._sum.amount || 0; */
 
     // Calcula o saldo final e converte de volta para Reais
-    const balanceInCents = income - fixed - variable - investment;
+    const balanceInCents = income - fixed - variable  /* investment; */
     const balanceInReais = balanceInCents / 100;
 
     return { success: true, data: balanceInReais };
