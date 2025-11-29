@@ -26,6 +26,7 @@
       "recommended": true,
       "suspicious": {
         "noUnknownAtRules": "off",
+        "noArrayIndexKey": "warn",
         "noExplicitAny":"warn"
       }
     },

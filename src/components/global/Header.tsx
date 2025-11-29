@@ -1,3 +1,4 @@
+import { ContributePixModal } from "./ContributePixModal"
 import { LogoApp } from "./logo"
 import { SideBar } from "./sidebar"
 import { ThemeButton } from "./ThemeButton"
@@ -12,6 +13,8 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <ContributePixModal />
+
           <SideBar />
           <ThemeButton />
           <UserAvatar />
