@@ -41,7 +41,7 @@ export default function TransactionPage() {
               <ShoppingCart className="mr-2 h-4 w-4" />
               Despesas Variáveis
             </TabsTrigger>
-            <TabsTrigger disabled value="investments">
+            <TabsTrigger value="investments">
               <TrendingUp className="mr-2 h-4 w-4" />
               Investimentos
             </TabsTrigger>
