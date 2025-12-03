@@ -1,16 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+// Importações de libs e componentes
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { toast } from 'sonner';
-
-import { addPaymentToDebt } from '@/app/actions/debt-actions';
 import {
   Popover,
   PopoverContent,
@@ -21,103 +15,41 @@ import {
   Button,
   Form,
   FormControl,
+  FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormField,
 } from '@/components/ui';
+import { useUpdatePaymentForm, UpdatePaymentFormValues } from '@/hooks/debts/use-update-payment-form';
 import { JSX } from 'react';
 
-// ----------------------------------------------------
-// 1. Definição do Schema de Validação (Zod)
-// ----------------------------------------------------
 
-export const paymentFormSchema = z.object({
-  amountPaid: z
-    .any()
-    .refine(
-      (val) => val !== undefined && val !== null && val !== "",
-      "É necessário informar o valor."
-    )
-    .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val), "O valor deve ser um número.")
-    .refine((val) => val > 0, "O valor deve ser maior que 0."),
-
-  paymentDate: z.date({
-    error: "A data do pagamento é obrigatória."
-  }),
-
-  installmentNumber: z.number().int().optional().nullable(),
-  notes: z.string().optional().nullable(),
-});
-
-type PaymentFormValues = z.infer<typeof paymentFormSchema>;
-
-interface AddPaymentFormProps {
+interface EditPaymentFormProps {
+  paymentId: string;
   debtId: string;
+  currentValues: UpdatePaymentFormValues;
   onSuccess: () => void;
 }
 
 /**
  * @component
- * @description Formulário para registro de um novo pagamento em uma dívida existente.
- * Utiliza React Hook Form, Zod e TanStack Query para submissão assíncrona.
- * @param {AddPaymentFormProps} props As propriedades do componente.
- * @param {string} props.debtId O ID da dívida para a qual o pagamento será adicionado.
- * @param {() => void} props.onSuccess Função de callback executada após o sucesso da submissão (e.g., fechar modal).
- * @returns {JSX.Element} O formulário de adição de pagamento.
+ * @description Formulário para edição de um pagamento existente.
+ * Utiliza o hook `useUpdatePaymentForm` para gerenciar o estado, validação e a mutação de atualização.
+ * @param {EditPaymentFormProps} props As propriedades do componente.
+ * @param {string} props.paymentId O ID do pagamento a ser atualizado.
+ * @param {string} props.debtId O ID da dívida à qual o pagamento pertence.
+ * @param {UpdatePaymentFormValues} props.currentValues Os valores iniciais do pagamento.
+ * @param {() => void} props.onSuccess Função de callback executada após a atualização bem-sucedida.
+ * @returns {JSX.Element} O formulário de edição de pagamento.
  */
-export function AddPaymentForm({ debtId, onSuccess }: AddPaymentFormProps): JSX.Element {
-  const queryClient = useQueryClient();
-  const today = new Date();
-
-  // --- 2. Configuração do Form ---
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentFormSchema),
-    defaultValues: {
-      amountPaid: 0,
-      paymentDate: today,
-      installmentNumber: undefined,
-      notes: null,
-    },
+export function EditPaymentForm({ paymentId, debtId, currentValues, onSuccess }: EditPaymentFormProps): JSX.Element {
+  // 1. Usa o Custom Hook, passando os IDs e os valores iniciais
+  const { form, onSubmit, isPending } = useUpdatePaymentForm({
+    paymentId,
+    debtId,
+    defaultValues: currentValues,
+    onSuccess
   });
-
-  // --- 3. Mutation (Submissão) ---
-  const { mutate, isPending } = useMutation({
-    mutationFn: (data: PaymentFormValues) => addPaymentToDebt({
-      debtId: debtId,
-      amountPaid: data.amountPaid,
-      paymentDate: data.paymentDate,
-      installmentNumber: data.installmentNumber,
-      notes: data.notes,
-    }),
-    onSuccess: () => {
-      toast.success('Pagamento registrado com sucesso! O resumo da dívida foi atualizado.');
-
-      // Reseta o formulário
-      form.reset({
-        paymentDate: new Date(),
-        amountPaid: 0,
-        installmentNumber: undefined,
-        notes: null,
-      });
-
-      onSuccess();
-
-      // Invalida as queries necessárias
-      queryClient.invalidateQueries({ queryKey: ['debtsList'] });
-      queryClient.invalidateQueries({ queryKey: ['debt', debtId] }); // Para atualizar o histórico de pagamentos e resumo na tela de detalhes
-    },
-    onError: (error) => {
-      console.error(error);
-      toast.error('Erro ao registrar pagamento. Tente novamente.');
-    },
-  });
-
-  // --- 4. Função de Submissão ---
-  function onSubmit(data: PaymentFormValues): void {
-    mutate(data);
-  }
 
   return (
     <Form {...form}>
@@ -141,6 +73,7 @@ export function AddPaymentForm({ debtId, onSuccess }: AddPaymentFormProps): JSX.
                     step="0.01"
                     {...field}
                     className="pl-10"
+                    // Converte o valor para string ou vazio
                     value={field.value ?? ""}
                     onChange={(e) => {
                       field.onChange(e.target.value);
@@ -209,6 +142,7 @@ export function AddPaymentForm({ debtId, onSuccess }: AddPaymentFormProps): JSX.
                     placeholder="Ex: 5"
                     {...field}
                     onChange={(e) => {
+                      // Converte para INT ou undefined
                       const value = e.target.value ? parseInt(e.target.value) : undefined;
                       field.onChange(value);
                     }}
@@ -233,6 +167,7 @@ export function AddPaymentForm({ debtId, onSuccess }: AddPaymentFormProps): JSX.
                   placeholder="Ex: Pago com o 13º salário"
                   {...field}
                   value={field.value ?? ''}
+                  // Garante que o valor vazio seja convertido para null (ou string vazia, dependendo da necessidade do backend)
                   onChange={(e) => field.onChange(e.target.value || null)}
                 />
               </FormControl>
@@ -250,10 +185,10 @@ export function AddPaymentForm({ debtId, onSuccess }: AddPaymentFormProps): JSX.
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Registrando...
+              Salvando Alterações...
             </>
           ) : (
-            'Confirmar Pagamento'
+            'Atualizar Pagamento'
           )}
         </Button>
       </form>

@@ -7,18 +7,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { createDebt } from '@/app/actions/debt-actions'; // Importe sua Server Action
-
-// Opções de categorias de dívida fixas (exportadas para o componente)
-export const DEBT_CATEGORIES = [
-  { value: 'Emprestimo', label: 'Empréstimo' },
-  { value: 'Financiamento', label: 'Financiamento' },
-  { value: 'Cartao', label: 'Cartão de Crédito' },
-  { value: 'Outros', label: 'Outros' },
-];
+import { DEBT_CATEGORIES } from '@/config/debts-categories';
 
 
-// --- 1. Definição do Schema de Validação (Zod) ---
-// Exportamos para ser usado na tipagem externa, se necessário
+// --- Definição do Schema de Validação (Zod) ---
+
+/**
+ * @typedef {Object} DebtFormValues
+ * @property {string} description - Descrição da dívida.
+ * @property {number} totalAmount - Valor total da dívida.
+ * @property {number | undefined} installments - Número de parcelas (opcional, undefined se 0 ou vazio).
+ * @property {Date | null | undefined} dueDate - Data de vencimento (opcional).
+ * @property {string | undefined} category - Categoria da dívida (opcional).
+ */
 export const debtFormSchema = z.object({
   description: z.string().min(3, 'Mínimo de 3 caracteres.'),
   totalAmount: z
@@ -30,7 +31,12 @@ export const debtFormSchema = z.object({
     .transform((val) => parseFloat(val))
     .refine((val) => !isNaN(val), "O valor deve ser um número.")
     .refine((val) => val > 0, "O valor deve ser maior que 0."),
-  installments: z.number().int().optional().nullable().transform(e => e === 0 ? undefined : e), // Garante que 0 é tratado como undefined
+  installments: z
+    .number()
+    .int()
+    .optional()
+    .nullable()
+    .transform(e => e === 0 ? undefined : e), // Garante que 0 é tratado como undefined
   dueDate: z.date().nullable().optional(),
   category: z.string().optional(),
 });
@@ -39,11 +45,21 @@ export type DebtFormValues = z.infer<typeof debtFormSchema>;
 
 
 interface UseDebtFormProps {
+  /**
+   * Função de callback a ser executada após o sucesso da criação da dívida,
+   * geralmente usada para fechar modais ou limpar o estado de componentes externos.
+   */
   onSuccess: () => void;
 }
 
 /**
- * 🔑 CUSTOM HOOK: Contém toda a lógica, estado e submissão do formulário de dívidas.
+ * @function useDebtForm
+ * @description CUSTOM HOOK que gerencia o formulário de criação de novas dívidas.
+ * Integra `react-hook-form` para estado e validação (Zod) e `useMutation` do TanStack Query
+ * para submissão assíncrona dos dados via Server Action (`createDebt`).
+ * @param {UseDebtFormProps} props - Propriedades do hook.
+ * @returns {{form: any, onSubmit: (data: DebtFormValues) => void, isPending: boolean, DEBT_CATEGORIES: any[]}}
+ * Retorna o objeto `form` (RHF), a função `onSubmit` (mutação), o estado `isPending` e as categorias.
  */
 export function useDebtForm({ onSuccess }: UseDebtFormProps) {
   const queryClient = useQueryClient();
@@ -53,7 +69,9 @@ export function useDebtForm({ onSuccess }: UseDebtFormProps) {
     resolver: zodResolver(debtFormSchema),
     defaultValues: {
       description: '',
-      totalAmount: 0,
+      // totalAmount deve ser inicializado como um número ou string/any que será validado
+      // 0 é um bom valor inicial para inputs numéricos
+      totalAmount: 0, 
       installments: undefined,
       dueDate: null,
       category: DEBT_CATEGORIES[0].value,
@@ -63,17 +81,18 @@ export function useDebtForm({ onSuccess }: UseDebtFormProps) {
   // --- 3. Mutation (Submissão com TanStack Query) ---
   const { mutate, isPending } = useMutation({
     mutationFn: (data: DebtFormValues) => createDebt({
-      // 🔑 CORREÇÃO PRINCIPAL: LISTAMOS AS PROPRIEDADES 
-      // E APLICAMOS O TRATAMENTO DE NULL/UNDEFINED DIRETO NA CONSTRUÇÃO DO OBJETO
+      // 🔑 Mapeamento e Tratamento de Dados para a Server Action
       description: data.description,
       totalAmount: data.totalAmount,
-      // Tratamos undefined do formulário para null (que é aceito pelo DB)
+      // Se o campo for undefined no formulário, enviamos null para o banco de dados
       installments: data.installments ?? null,
       dueDate: data.dueDate ?? null,
       category: data.category ?? null,
     }),
     onSuccess: () => {
       toast.success('Dívida registrada com sucesso!');
+      
+      // Reseta o formulário para os valores iniciais
       form.reset({
         description: '',
         totalAmount: 0,
@@ -81,9 +100,10 @@ export function useDebtForm({ onSuccess }: UseDebtFormProps) {
         dueDate: null,
         category: DEBT_CATEGORIES[0].value,
       });
+      
       onSuccess();
 
-      // Invalida as queries para buscar os dados atualizados
+      // Invalida as queries para buscar os dados atualizados em lista e resumo
       queryClient.invalidateQueries({ queryKey: ['debtsList'] });
       queryClient.invalidateQueries({ queryKey: ['debtsSummary'] });
     },

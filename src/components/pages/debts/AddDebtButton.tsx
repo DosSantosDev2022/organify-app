@@ -1,44 +1,48 @@
 'use client'
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { JSX, useState } from 'react';
 import { Plus } from 'lucide-react';
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'; // Assumindo o componente Dialog/Modal
+} from '@/components/ui';
 import { DebtForm } from './DebtForm';
 
-export function AddDebtButton() {
+/**
+ * @component
+ * @description Botão que abre um modal (`Dialog`) contendo o formulário (`DebtForm`) para adicionar uma nova dívida.
+ * O modal é fechado automaticamente após o sucesso do cadastro.
+ * @returns {JSX.Element} O botão e o componente modal.
+ */
+export function AddDebtButton(): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Função para fechar o modal após o sucesso do cadastro
-  const handleSuccess = () => {
+  /**
+   * Função para fechar o modal. É passada para o `DebtForm` para ser chamada após o sucesso da submissão.
+   * @function
+   */
+  const handleSuccess = (): void => {
     setIsModalOpen(false);
-    // Aqui você também pode invalidar a query do React Query para atualizar a lista:
-    // queryClient.invalidateQueries({ queryKey: ['debtsList'] }); 
   }
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      {/* Botão que abre o modal, idêntico ao do seu print */}
       <DialogTrigger asChild>
-        <Button className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white">
+        <Button className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
           <span>Adicionar</span>
         </Button>
       </DialogTrigger>
 
-      {/* Conteúdo do Modal (Formulário) */}
-      <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-700 text-white">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-2xl">Nova Dívida</DialogTitle>
         </DialogHeader>
 
-        {/* Passa a função de fechar o modal para o formulário */}
         <DebtForm onSuccess={handleSuccess} />
 
       </DialogContent>

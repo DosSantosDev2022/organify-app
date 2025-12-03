@@ -259,3 +259,195 @@ export async function addPaymentToDebt(data: AddPaymentFormState) {
     return { success: false, error: 'Falha ao registrar o pagamento.' };
   }
 }
+
+
+// Tipo de dados para a edição de uma dívida
+export type UpdateDebtFormState = {
+  id: string; // ID da dívida é obrigatório
+  description?: string;
+  totalAmount?: number;
+  installments?: number | null;
+  dueDate?: Date | null;
+  category?: string | null;
+  isPaidOff?: boolean; // Podemos permitir a edição manual do status de quitação
+};
+
+// Tipo de dados para a edição de um pagamento
+export type UpdatePaymentFormState = {
+  id: string; // ID do pagamento é obrigatório
+  debtId: string; // Necessário para reavaliar o status da dívida
+  amountPaid?: number;
+  paymentDate?: Date;
+  installmentNumber?: number | null;
+  notes?: string | null;
+};
+
+// ---------------------------------------------
+// Ações de Escrita (CRUD) - UPDATE
+// ---------------------------------------------
+
+/**
+ * Edita um registro de dívida existente.
+ */
+export async function updateDebt(data: UpdateDebtFormState) {
+  const userId = await getAuthenticatedUserId();
+
+  // Prepara os dados para o Prisma
+  const dataToUpdate: Omit<typeof data, 'id' | 'totalAmount'> & { totalAmount?: number } = { ...data };
+
+  // CONVERSÃO CRUCIAL: Reais (float) -> Centavos (Int), se o valor for enviado
+  if (data.totalAmount !== undefined) {
+    dataToUpdate.totalAmount = Math.round(data.totalAmount * 100);
+  } else {
+    // Remove a chave se não for alterada para evitar erro de tipo/conversão no Prisma
+    delete dataToUpdate.totalAmount;
+  }
+
+  try {
+    const updatedDebt = await db.debt.update({
+      where: { id: data.id, userId: userId }, // Garante que apenas o proprietário edite
+      data: dataToUpdate,
+    });
+
+    // Limpa o cache
+    revalidatePath('/debts');
+    revalidatePath('/');
+
+    return { success: true, debt: updatedDebt };
+  } catch (error) {
+    console.error(`Erro ao editar dívida ${data.id}:`, error);
+    return { success: false, error: 'Falha ao editar a dívida.' };
+  }
+}
+
+/**
+ * Edita um pagamento existente e reavalia o status da dívida.
+ */
+export async function updatePayment(data: UpdatePaymentFormState) {
+  const userId = await getAuthenticatedUserId();
+
+  // 1. Prepara os dados para o Prisma
+  const dataToUpdate: Omit<typeof data, 'id' | 'debtId' | 'amountPaid'> & { amountPaid?: number } = { ...data };
+
+  // CONVERSÃO CRUCIAL: Reais (float) -> Centavos (Int), se o valor for enviado
+  if (data.amountPaid !== undefined) {
+    dataToUpdate.amountPaid = Math.round(data.amountPaid * 100);
+  } else {
+    delete dataToUpdate.amountPaid;
+  }
+
+  try {
+    // 2. Atualiza o registro do pagamento
+    const updatedPayment = await db.debtPayment.update({
+      where: { id: data.id, debt: { userId: userId } }, // Garante a posse através da relação
+      data: dataToUpdate,
+    });
+
+    // 3. Reavalia o status de quitação da dívida
+    await revalidateDebtStatus(data.debtId, userId);
+
+    // Limpa o cache
+    revalidatePath('/debts');
+    revalidatePath('/');
+
+    return { success: true, payment: updatedPayment };
+  } catch (error) {
+    console.error(`Erro ao editar pagamento ${data.id}:`, error);
+    return { success: false, error: 'Falha ao editar o pagamento.' };
+  }
+}
+
+// ⚠️ FUNÇÃO AUXILIAR REQUERIDA (Para não duplicar a lógica de quitação)
+async function revalidateDebtStatus(debtId: string, userId: string) {
+  const debt = await db.debt.findUnique({
+    where: { id: debtId, userId: userId },
+    select: { id: true, totalAmount: true, isPaidOff: true },
+  });
+
+  if (debt) {
+    const totalPaidResult = await db.debtPayment.aggregate({
+      where: { debtId: debtId },
+      _sum: { amountPaid: true },
+    });
+
+    const totalPaid = totalPaidResult._sum.amountPaid || 0;
+    const totalAmount = debt.totalAmount;
+    const isPaidOffNew = totalPaid >= totalAmount;
+
+    // Atualiza o status isPaidOff se houver mudança
+    if (isPaidOffNew !== debt.isPaidOff) {
+      await db.debt.update({
+        where: { id: debtId },
+        data: { isPaidOff: isPaidOffNew },
+      });
+    }
+  }
+}
+
+// ---------------------------------------------
+// Ações de Escrita (CRUD) - DELETE
+// ---------------------------------------------
+
+/**
+ * Exclui um registro de dívida e todos os seus pagamentos relacionados (cascata).
+ */
+export async function deleteDebt(debtId: string) {
+  const userId = await getAuthenticatedUserId();
+
+  try {
+    // 1. Exclui todos os pagamentos relacionados primeiro (se não estiver configurado como CASCADE no Schema)
+    // Se for CASCADE, basta excluir a dívida.
+    // Vamos assumir que o Prisma está configurado para deletar em cascata ou que você tem um Transaction:
+
+    const deletedDebt = await db.debt.delete({
+      where: { id: debtId, userId: userId }, // Garante que apenas o proprietário exclua
+    });
+
+    // Limpa o cache
+    revalidatePath('/debts');
+    revalidatePath('/');
+
+    return { success: true, debt: deletedDebt };
+  } catch (error) {
+    console.error(`Erro ao excluir dívida ${debtId}:`, error);
+    return { success: false, error: 'Falha ao excluir a dívida. Verifique se há pagamentos relacionados.' };
+  }
+}
+
+/**
+ * Exclui um pagamento e reavalia o status da dívida.
+ */
+export async function deletePayment(paymentId: string) {
+  const userId = await getAuthenticatedUserId();
+
+  try {
+    // 1. Busca o pagamento para obter o debtId
+    const payment = await db.debtPayment.findUnique({
+      where: { id: paymentId, debt: { userId: userId } },
+      select: { debtId: true },
+    });
+
+    if (!payment) {
+      return { success: false, error: 'Pagamento não encontrado ou acesso negado.' };
+    }
+
+    const debtId = payment.debtId;
+
+    // 2. Exclui o pagamento
+    const deletedPayment = await db.debtPayment.delete({
+      where: { id: paymentId },
+    });
+
+    // 3. Reavalia o status de quitação da dívida
+    await revalidateDebtStatus(debtId, userId);
+
+    // Limpa o cache
+    revalidatePath('/debts');
+    revalidatePath('/');
+
+    return { success: true, payment: deletedPayment };
+  } catch (error) {
+    console.error(`Erro ao excluir pagamento ${paymentId}:`, error);
+    return { success: false, error: 'Falha ao excluir o pagamento.' };
+  }
+}

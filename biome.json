@@ -18,7 +18,9 @@
     "enabled": true,
     "rules": {
       "a11y": {
-       "useSemanticElements":"off"
+       "useSemanticElements":"off",
+       "useKeyWithClickEvents":"warn",
+       "noStaticElementInteractions":"warn"
       },
       "style": {
         "useImportType":"off"

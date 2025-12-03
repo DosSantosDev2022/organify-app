@@ -169,7 +169,7 @@ model Debt {
 model DebtPayment {
   id              String           @id @default(cuid())
   debtId          String
-  debt            Debt             @relation(fields: [debtId], references: [id])
+  debt            Debt             @relation(fields: [debtId], references: [id],onDelete: Cascade)
   paymentDate     DateTime
   amountPaid      Int           
   installmentNumber Int?           // Qual parcela foi paga (se aplicável)

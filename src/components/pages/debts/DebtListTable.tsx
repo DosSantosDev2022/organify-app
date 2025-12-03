@@ -1,13 +1,26 @@
+'use client'
+
 import { useQuery } from '@tanstack/react-query';
-import { getDebts } from '@/app/actions/debt-actions';
+import { getDebts, DebtWithPaidInfo } from '@/app/actions/debt-actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, CheckCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { formatDate } from '@/utils/format-date';
+import { JSX } from 'react';
 
-export function DebtListTable() {
-  const { data: debts, isLoading, isError } = useQuery({
+/**
+ * @component
+ * @description Exibe a lista de dívidas registradas em um formato de tabela.
+ * Utiliza TanStack Query para buscar os dados, gerenciando os estados de carregamento e erro.
+ * @returns {JSX.Element} A tabela de dívidas ou mensagens de status.
+ */
+export function DebtListTable(): JSX.Element {
+  const {
+    data: debts,
+    isLoading,
+    isError
+  } = useQuery<DebtWithPaidInfo[]>({
     queryKey: ['debtsList'],
     queryFn: getDebts,
   });
@@ -17,9 +30,9 @@ export function DebtListTable() {
   if (!debts || debts.length === 0) return <div className="p-4 text-center text-gray-400">Nenhuma dívida registrada.</div>;
 
   return (
-    <div className="rounded-md border border-gray-800 overflow-hidden">
+    <div className="rounded-md border border-border overflow-hidden">
       <Table>
-        <TableHeader className="bg-gray-800/50">
+        <TableHeader className="bg-card/50">
           <TableRow>
             <TableHead>Descrição</TableHead>
             <TableHead>Categoria</TableHead>
@@ -32,18 +45,22 @@ export function DebtListTable() {
         </TableHeader>
         <TableBody>
           {debts.map((debt) => (
-            <TableRow key={debt.id} className="hover:bg-gray-800/30 transition-colors">
+            <TableRow key={debt.id}>
               <TableCell className="font-medium">
                 {debt.description}
-                {debt.isPaidOff && <CheckCircle className="ml-2 inline h-4 w-4 text-green-500" />}
+                {/* Ícone de quitada */}
+                {debt.isPaidOff && <CheckCircle className="ml-2 inline h-4 w-4 text-success" />}
               </TableCell>
-              <TableCell className="text-gray-400">{debt.category || 'N/A'}</TableCell>
+              <TableCell className="text-muted-foreground">{debt.category || 'N/A'}</TableCell>
               <TableCell className="text-right">{formatCurrency(debt.totalAmount)}</TableCell>
-              <TableCell className="text-right text-green-400">{formatCurrency(debt.amountPaid)}</TableCell>
-              <TableCell className={`text-right font-bold ${debt.remainingAmount > 0 ? 'text-red-400' : 'text-green-500'}`}>
+              <TableCell className="text-right text-success">{formatCurrency(debt.amountPaid)}</TableCell>
+              <TableCell
+                className={`text-right font-bold ${debt.remainingAmount > 0 ? 'text-destructive' : 'text-success'}`}
+              >
                 {formatCurrency(debt.remainingAmount)}
               </TableCell>
-              <TableCell className="text-gray-400">{debt.dueDate ? formatDate(debt.dueDate) : 'N/A'}</TableCell>
+              {/* Formata a data de vencimento */}
+              <TableCell className="text-muted-foreground">{debt.dueDate ? formatDate(debt.dueDate) : 'N/A'}</TableCell>
               <TableCell>
                 <Button variant="ghost" className="h-8 w-8 p-0" title="Ver Detalhes/Adicionar Pagamento">
                   <span className="sr-only">Abrir menu</span>

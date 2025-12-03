@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import * as z from 'zod';
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
-  SelectItem,
-  SelectTrigger,
+  SelectItem, SelectTrigger,
   SelectValue,
   Popover,
   PopoverContent,
@@ -22,60 +22,37 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
-import { useDebtForm } from '@/hooks/debts/use-debt-form';
-import { formatDate } from '@/utils/format-date';
+import { useUpdateDebtForm, UpdateDebtFormValues } from '@/hooks/debts/use-update-debt-form';
+import { DEBT_CATEGORIES } from '@/config/debts-categories';
 import { JSX } from 'react';
 
-// ----------------------------------------------------
-// 1. Definição do Schema de Validação (Zod)
-// ----------------------------------------------------
-
-const debtFormSchema = z.object({
-  description: z.string().min(3, 'Mínimo de 3 caracteres.'),
-
-  totalAmount: z
-    .any()
-    .refine(
-      (val) => val !== undefined && val !== null && val !== "",
-      "É necessário informar o valor."
-    )
-    .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val), "O valor deve ser um número.")
-    .refine((val) => val > 0, "O valor deve ser maior que 0."),
-
-  installments: z.number().int().optional().nullable().transform(e => e === 0 ? undefined : e),
-
-  dueDate: z.date().nullable().optional(),
-
-  category: z.string().optional(),
-});
-
-type DebtFormValues = z.infer<typeof debtFormSchema>;
-
-interface DebtFormProps {
+interface EditDebtFormProps {
+  debtId: string;
+  currentValues: UpdateDebtFormValues;
   onSuccess: () => void;
 }
 
 /**
  * @component
- * @description Formulário principal para criação de uma nova dívida.
- * Utiliza o custom hook `useDebtForm` para gerenciar a lógica de formulário e a mutação.
- * @param {DebtFormProps} props As propriedades do componente.
- * @param {() => void} props.onSuccess Função de callback executada após o sucesso da submissão (e.g., fechar modal).
- * @returns {JSX.Element} O formulário de cadastro de dívida.
+ * @description Formulário para edição de uma dívida existente.
+ * Utiliza o hook `useUpdateDebtForm` para gerenciar o estado, validação e a mutação de atualização.
+ * @param {EditDebtFormProps} props As propriedades do componente.
+ * @param {string} props.debtId O ID da dívida a ser atualizada.
+ * @param {UpdateDebtFormValues} props.currentValues Os valores iniciais da dívida para o formulário.
+ * @param {() => void} props.onSuccess Função de callback executada após a atualização bem-sucedida.
+ * @returns {JSX.Element} O formulário de edição de dívida.
  */
-export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
-  // 1. Usa o Custom Hook para obter toda a lógica
-  const { form, onSubmit, isPending, DEBT_CATEGORIES } = useDebtForm({ onSuccess });
-
-  // 2. Função de Submissão que chama o mutate via onSubmit retornado pelo hook
-  function handleSubmit(data: DebtFormValues): void {
-    onSubmit(data);
-  }
+export function EditDebtForm({ debtId, currentValues, onSuccess }: EditDebtFormProps): JSX.Element {
+  // 1. Usa o Custom Hook, passando o ID e os valores iniciais
+  const { form, onSubmit, isPending } = useUpdateDebtForm({
+    debtId,
+    defaultValues: currentValues,
+    onSuccess
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
         {/* Descrição da Dívida */}
         <FormField
@@ -110,6 +87,9 @@ export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
                     placeholder="0,00"
                     {...field}
                     className="pl-10"
+                    // Nota: O campo 'value' está sendo convertido para string ou vazio para Input[type="number"]
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </div>
               </FormControl>
@@ -121,7 +101,7 @@ export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
         {/* Número de Parcelas e Data de Vencimento */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* Nº de Parcelas (Opção 1) */}
+          {/* Nº de Parcelas (Opcional) */}
           <FormField
             control={form.control}
             name="installments"
@@ -134,7 +114,7 @@ export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
                     placeholder="Ex: 36"
                     {...field}
                     onChange={(e) => {
-                      // biome-ignore lint/correctness/useParseIntRadix: Conforme código original
+                      // Converte para INT ou undefined
                       const value = e.target.value ? parseInt(e.target.value) : undefined;
                       field.onChange(value);
                     }}
@@ -164,7 +144,8 @@ export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
                         )}
                       >
                         {field.value ? (
-                          formatDate(field.value, "dd/MM/yyy")
+                          // Formata a data com ptBR
+                          format(field.value, "dd/MM/yyy", { locale: ptBR })
                         ) : (
                           <span>Selecione a data</span>
                         )}
@@ -215,17 +196,17 @@ export function DebtForm({ onSuccess }: DebtFormProps): JSX.Element {
 
         {/* Botão de Submissão */}
         <Button
-          className='w-full'
           type="submit"
+          className="w-full "
           disabled={isPending}
         >
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Cadastrando...
+              Salvando Alterações...
             </>
           ) : (
-            'Cadastrar Dívida'
+            'Atualizar Dívida'
           )}
         </Button>
       </form>

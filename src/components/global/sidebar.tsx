@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui"
-import { Menu, Wallet, Tag, Wrench, TrendingUp, ShoppingBag, Lock } from "lucide-react" // Importar Lock
+import { Menu, Wallet, Tag, Wrench, ShoppingBag, Lock, Banknote } from "lucide-react" // Importar Lock
 import Link from "next/link"
 import { useSession } from "next-auth/react" // 💡 Importar useSession
 import React from 'react';
@@ -22,8 +22,8 @@ const navLinks: {
 }[] = [
     { href: "/transactions", label: "Transações", icon: Wallet, inDev: false, requiredPlan: "FREE" },
     { href: "/categories", label: "Categorias", icon: Tag, inDev: false, requiredPlan: "FREE" },
+    { href: "/debts", label: "Dívidas", icon: Banknote, inDev: false, requiredPlan: "FREE" },
     { href: "/plan-purchases", label: "Planejar compras", icon: ShoppingBag, inDev: false, requiredPlan: "PREMIUM" },
-    { href: "/investments", label: "Investimentos", icon: TrendingUp, inDev: true, requiredPlan: "FREE" },
     { href: "/settings", label: "Configurações", icon: Wrench, inDev: true, requiredPlan: "FREE" },
   ]
 
