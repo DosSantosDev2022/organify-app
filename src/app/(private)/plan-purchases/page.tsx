@@ -1,10 +1,12 @@
-// app/planejar-compras/page.tsx
 "use client";
-import { ChevronLeft, ChevronRight, Trash2, Loader2, CheckCircle, Edit, PlusCircle } from "lucide-react";
+
+import {
+  ChevronLeft, ChevronRight, Trash2, Loader2, CheckCircle,
+  Edit, PlusCircle, ShoppingBag, Calendar, ListChecks
+} from "lucide-react";
 
 // Componentes Shadcn
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,11 +15,14 @@ import { PlannedPurchaseFormDialog } from "@/components/pages/planned-purchases/
 
 // Hook Controller
 import { usePlannedPurchasesController } from "@/hooks/planned-purchases/use-planned-purchases-controller";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui";
 import { useMemo } from "react";
 
 export default function PlanejarComprasPage() {
-  // Chamada única do hook
   const {
     items, isLoading,
     totalPlanned, totalPurchased, purchasedCount,
@@ -38,290 +43,172 @@ export default function PlanejarComprasPage() {
     return items.find(item => item.id === itemToDeleteId);
   }, [items, itemToDeleteId]);
 
-
   return (
-    <div className="p-4 md:p-6 space-y-6 text-foreground bg-background min-h-screen">
-      {/* Ajuste: p-4 em mobile, p-6 em desktop */}
+    <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
 
-      {/* --- Cabeçalho e Navegação: FLEX-WRAP em Mobile --- */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Bloco do Título */}
-        <div className="w-full sm:w-auto">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Planejar Compras</h1> {/* Tamanho de texto ajustado */}
-          <p className="text-sm text-muted-foreground">Organize seus objetivos de compra mês a mês.</p>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 bg-card border rounded-2xl shadow-sm gap-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+            <ShoppingBag className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Planejar Compras</h1>
+            <p className="text-sm text-muted-foreground">Organize seus objetivos de compra mês a mês</p>
+          </div>
         </div>
 
-        {/* Bloco de Navegação */}
-        <div className="flex items-center justify-between sm:justify-end gap-4 p-1 sm:p-2 w-full sm:w-auto">
-          <Button variant="outline" size="icon" onClick={handlePrevMonth}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="font-semibold text-base md:text-lg capitalize text-center block truncate">
-            {currentMonthFormatted}
-          </span>
-          <Button variant="outline" size="icon" onClick={handleNextMonth}><ChevronRight className="h-4 w-4" /></Button>
+        {/* NAVEGAÇÃO DE MÊS */}
+        <div className="flex items-center gap-4 bg-muted/50 p-2 rounded-xl border w-full lg:w-auto justify-between lg:justify-start">
+          <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="hover:bg-background">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2 px-2 min-w-[140px] justify-center">
+            <Calendar className="h-4 w-4 text-primary" />
+            <span className="font-semibold capitalize">{currentMonthFormatted}</span>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleNextMonth} className="hover:bg-background">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* --- Cards de Resumo: GRID RESPONSIVO --- */}
-      <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-3"> {/* Alterado de 2 colunas para 3 a partir de md */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Total Planejado</CardTitle>
-            <span className="text-muted-foreground">R$</span>
-          </CardHeader>
-          <CardContent className="pt-2 md:pt-3">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-              <div className="text-xl md:text-2xl font-bold">{formatCurrency(totalPlanned)}</div>
+      {/* --- CARDS DE RESUMO --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Total Planejado */}
+        <div className="p-6 rounded-2xl border bg-blue-500/5 border-blue-500/20 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+            <ShoppingBag className="w-12 h-12 text-blue-500" />
+          </div>
+          <p className="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">Total Planejado</p>
+          <div className="flex items-baseline gap-1">
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-blue-500" /> : (
+              <span className="text-3xl font-bold">{formatCurrency(totalPlanned)}</span>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="bg-success/20 dark:bg-success/90">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Já Comprado</CardTitle>
-            <CheckCircle className="h-4 w-4 text-success-foreground" />
-          </CardHeader>
-          <CardContent className="pt-2 md:pt-3">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-emerald-500" /> : (
+        {/* Já Comprado */}
+        <div className="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/20 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+            <CheckCircle className="w-12 h-12 text-emerald-500" />
+          </div>
+          <p className="text-sm font-medium text-emerald-500 uppercase tracking-wider mb-1">Já Comprado</p>
+          <div className="flex flex-col">
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-emerald-500" /> : (
               <>
-                <div className="text-xl md:text-2xl font-bold text-success-foreground">{formatCurrency(totalPurchased)}</div>
-                <p className="text-xs text-foreground mt-1">
-                  {purchasedCount} itens concluídos
-                </p>
+                <span className="text-3xl font-bold text-emerald-500">{formatCurrency(totalPurchased)}</span>
+                <span className="text-xs font-medium text-muted-foreground mt-1 flex items-center gap-1">
+                  <ListChecks className="w-3 h-3" /> {purchasedCount} itens concluídos
+                </span>
               </>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* --- BOTÃO DE AÇÃO: Sempre visível, alinhado à direita --- */}
-      <div className="flex justify-end">
-        <Button onClick={handleNewItemClick} className="gap-2 w-full sm:w-auto"> {/* w-full em mobile */}
-          <PlusCircle className="h-4 w-4" /> Novo Plano
-        </Button>
-
-        <PlannedPurchaseFormDialog
-          isDialogOpen={isDialogOpen}
-          selectedMonth={selectedMonth}
-          setIsDialogOpen={setIsDialogOpen}
-          initialData={itemToEdit}
-        />
-      </div>
-
-      {/* --- TABELA DE ITENS (Desktop/Tablet) --- */}
-      <div className="hidden md:block rounded-md border border-border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[300px]">Item</TableHead>
-              <TableHead>Prazo</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead className="text-center w-[150px]">Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {/* Conteúdo da tabela (inalterado) */}
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  <Loader2 className="inline mr-2 h-4 w-4 animate-spin" /> Carregando planos...
-                </TableCell>
-              </TableRow>
-            ) : items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">Nenhum plano encontrado para este mês.</TableCell>
-              </TableRow>
-            ) : (
-              items.map((item) => (
-                <TableRow
-                  key={item.id}
-                  className={item.status === 'PURCHASED' ? 'bg-muted/30' : 'cursor-pointer hover:bg-muted/50'}
-                >
-                  {/* Células da Tabela (inalteradas, mas ocultas em mobile) */}
-                  <TableCell onClick={() => handleEditItem(item)} className="cursor-pointer">
-                    <div className="flex flex-col">
-                      <span className={`font-medium ${item.status === 'PURCHASED' ? 'line-through text-muted-foreground' : ''}`}>
-                        {item.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{item.description}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell onClick={() => handleEditItem(item)} className="text-sm cursor-pointer">
-                    {new Date(item.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                  </TableCell>
-                  <TableCell onClick={() => handleEditItem(item)} className="font-medium cursor-pointer">{formatCurrency(item.amount)}</TableCell>
-
-                  <TableCell className="text-center">
-                    <div
-                      onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleStatus(item.id);
-                        }
-                      }}
-                      className="cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full inline-block"
-                      title="Clique para alterar status"
-                      role="button"
-                      tabIndex={0}
-                    >
-                      {item.status === 'PURCHASED' ? (
-                        <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700 pointer-events-none">Comprado</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600/50 hover:bg-yellow-600/10 pointer-events-none">Pendente</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-
-
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditItem(item);
-                      }}
-                      title="Editar item"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteItemClick(item.id)
-                      }}
-                      className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                      title="Excluir item"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* --- CARDS DE ITENS (Mobile) --- */}
-      <div className="md:hidden flex flex-col gap-3">
-        {/* Adiciona o estado de carregamento/vazio também para mobile */}
-        {isLoading ? (
-          <div className="h-24 text-center flex items-center justify-center">
-            <Loader2 className="inline mr-2 h-4 w-4 animate-spin" /> Carregando planos...
           </div>
-        ) : items.length === 0 ? (
-          <p className="h-24 text-center text-muted-foreground pt-8">Nenhum plano encontrado para este mês.</p>
-        ) : (
-          items.map((item) => (
-            <div
-              key={item.id}
-              className={`border rounded-lg p-4 shadow-sm ${item.status === 'PURCHASED' ? 'bg-muted/30 border-green-200/50' : 'bg-card'}`}
-              onClick={() => handleEditItem(item)} // Clica no card para editar
-              tabIndex={0}
+        </div>
 
-              onKeyDown={(e) => {
-                // Verifica se a tecla pressionada é Enter ('13') ou Space ('32')
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault(); // Impede a ação padrão, se houver
-                  handleEditItem(item); // Executa a mesma ação que o onClick
-                }
-              }}
-              role="button"
-            >
-              <div className="flex justify-between items-start mb-2">
-                {/* Nome e Descrição */}
-                <div className="flex flex-col overflow-hidden mr-4">
-                  <span className={`font-semibold ${item.status === 'PURCHASED' ? 'line-through text-muted-foreground' : ''} truncate`}>
-                    {item.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate">{item.description}</span>
-                </div>
-                {/* Status e Valor */}
-                <div className="text-right shrink-0">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleStatus(item.id); }}
-                    className="mb-1 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 rounded-full"
-                    title="Clique para alterar status"
-                    type="button"
-                  >
-                    {item.status === 'PURCHASED' ? (
-                      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700 text-xs">Comprado</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-yellow-600 border-yellow-600/50 hover:bg-yellow-600/10 text-xs">Pendente</Badge>
-                    )}
-                  </button>
-                  <span className="block font-bold text-base">{formatCurrency(item.amount)}</span>
-                </div>
-              </div>
-
-              {/* Rodapé do Card: Prazo e Ações */}
-              <div className="flex justify-between items-center border-t border-border pt-2 mt-2">
-                <span className="text-xs text-muted-foreground">
-                  Prazo: {new Date(item.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                </span>
-
-                <div className="flex space-x-1 shrink-0">
-                  {/* Botão de Edição explícito (pode ser redundante, mas é bom ter) */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditItem(item);
-                    }}
-                    title="Editar item"
-                    className="h-8 w-8"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-
-                  {/* Botão de Deleção */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItemClick(item.id)
-                    }}
-                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                    title="Excluir item"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+        {/* Botão de Adicionar*/}
+        <button
+          type="button"
+          onClick={handleNewItemClick}
+          className="p-6 rounded-2xl cursor-pointer border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 group"
+        >
+          <PlusCircle className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+          <span className="font-semibold text-muted-foreground group-hover:text-primary">Novo Plano de Compra</span>
+        </button>
       </div>
 
+      {/* --- LISTAGEM DE ITENS --- */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 px-2">
+          <div className="w-1.5 h-5 bg-primary rounded-full" />
+          <h2 className="text-xl font-semibold">Itens do Planejamento</h2>
+        </div>
 
-      {/* --- ALERT DIALOG DE CONFIRMAÇÃO (INALETRADO) --- */}
+        {/* TABELA DESKTOP */}
+        <div className="hidden md:block rounded-2xl border bg-card shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="w-[40%]">Item</TableHead>
+                <TableHead>Prazo</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={5} className="h-32 text-center"><Loader2 className="inline h-6 w-6 animate-spin text-primary" /></TableCell></TableRow>
+              ) : items.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Nenhum plano encontrado para este mês.</TableCell></TableRow>
+              ) : (
+                items.map((item) => (
+                  <TableRow key={item.id} className="group hover:bg-muted/30 transition-colors">
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <span className={`font-bold text-base ${item.status === 'PURCHASED' ? 'line-through text-muted-foreground/60' : ''}`}>
+                          {item.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground italic">{item.description}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm font-medium">
+                      {new Date(item.deadline).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                    </TableCell>
+                    <TableCell className="font-bold text-lg">{formatCurrency(item.amount)}</TableCell>
+                    <TableCell className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleStatus(item.id)}
+                        className="transition-transform active:scale-95"
+                      >
+                        {item.status === 'PURCHASED' ? (
+                          <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 px-3 py-1">Comprado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-500 border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 px-3 py-1">Pendente</Badge>
+                        )}
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleEditItem(item)} className="h-9 w-9">
+                          <Edit className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteItemClick(item.id)} className="h-9 w-9 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+
+      <PlannedPurchaseFormDialog
+        isDialogOpen={isDialogOpen}
+        selectedMonth={selectedMonth}
+        setIsDialogOpen={setIsDialogOpen}
+        initialData={itemToEdit}
+      />
+
+      {/* ALERT DIALOG */}
       <AlertDialog open={!!itemToDeleteId} onOpenChange={(open) => !open && handleCancelDelete()}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-2">
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">Confirmar exclusão?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Você está prestes a remover permanentemente o item: **{itemToDelete?.name || 'Item Desconhecido'}**.
+              O item <strong className="text-foreground">{itemToDelete?.name}</strong> será removido permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel asChild>
-              <Button variant="outline" onClick={handleCancelDelete}>
-                Cancelar
-              </Button>
-            </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button variant="destructive" onClick={handleDeleteConfirmation}>
-                Sim, excluir
-              </Button>
+              <Button variant="destructive" onClick={handleDeleteConfirmation} className="rounded-xl px-8">Excluir</Button>
             </AlertDialogAction>
+            <AlertDialogCancel asChild>
+              <Button variant="ghost" className="rounded-xl">Cancelar</Button>
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
