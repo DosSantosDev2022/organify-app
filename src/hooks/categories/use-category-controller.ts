@@ -27,7 +27,6 @@ interface UseCategoryControllerReturn {
     // Status de mutação
     isMutating: boolean;
     deleteIsPending: boolean;
-    deleteMutationVariables: { id: string } | undefined;
     // Handlers e Setters
     setNewCategoryName: (name: string) => void;
     setNewCategoryType: (type: TransactionType) => void;
@@ -171,7 +170,6 @@ export function useCategoryController(): UseCategoryControllerReturn {
         // Status de mutação
         isMutating,
         deleteIsPending: deleteMutation.isPending,
-        deleteMutationVariables: deleteMutation.variables as { id: string } | undefined, // Tipagem explícita
         // Handlers e Setters
         setNewCategoryName,
         setNewCategoryType,

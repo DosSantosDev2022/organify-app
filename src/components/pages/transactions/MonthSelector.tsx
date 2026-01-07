@@ -29,7 +29,7 @@ export function MonthSelector({
   });
 
   return (
-    <div className="flex items-center justify-center md:justify-end gap-16 mb-6 sm:mb-8">
+    <div className="flex items-center justify-center md:justify-end gap-16">
       <Button variant="outline" size="icon" onClick={handlePrevMonth}>
         <ChevronLeft className="h-4 w-4" />
       </Button>
