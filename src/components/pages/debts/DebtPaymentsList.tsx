@@ -28,7 +28,7 @@ interface DebtPaymentsListProps {
  * @param {number} props.totalAmount O valor total da dívida (para contexto).
  * @returns {JSX.Element} A tabela de pagamentos ou uma mensagem de lista vazia.
  */
-export function DebtPaymentsList({ payments, debtId, totalAmount }: DebtPaymentsListProps): JSX.Element {
+export function DebtPaymentsList({ payments, debtId }: DebtPaymentsListProps): JSX.Element {
   if (!payments || payments.length === 0) {
     return (
       <div className="p-4 border border-border rounded-md text-center text-muted-foreground">
