@@ -3,6 +3,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -34,6 +35,10 @@ interface TransactionTableProps {
 }
 
 export function TransactionTable({ transactions, onEdit, onDelete, }: TransactionTableProps) {
+
+  // Lógica para somar os valores lançados na tabela atual
+  const totalAmount = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="relative w-full max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20">
@@ -51,7 +56,7 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
                 <div className="flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Categoria</div>
               </TableHead>
               <TableHead className="text-foreground font-semibold">
-                <div className="flex items-center justify-end gap-2"><HiOutlineStatusOnline className="w-4 h-4 text-primary" /> Status</div>
+                <div className="flex items-center gap-2"><HiOutlineStatusOnline className="w-4 h-4 text-primary" /> Status</div>
               </TableHead>
 
               <TableHead className="text-right text-foreground font-semibold">
@@ -123,6 +128,18 @@ export function TransactionTable({ transactions, onEdit, onDelete, }: Transactio
               ))
             )}
           </TableBody>
+
+          {transactions.length > 0 && (
+            <TableFooter className="bg-muted/50 border-t-2">
+              <TableRow>
+                <TableCell colSpan={4} className="font-bold text-foreground">Total transações</TableCell>
+                <TableCell className="text-right font-black text-primary text-lg">
+                  {formatCurrency(totalAmount)}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
 
