@@ -77,15 +77,15 @@ export function LoginCard() {
           <div className="absolute inset-0 flex items-center">
             <Separator />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
+        {/*   <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
               Ou continue com
             </span>
-          </div>
+          </div> */}
         </div>
 
         {/* Inputs Demonstrativos (Prontos para futura expansão se necessário) */}
-        <div className="grid gap-2 opacity-50 pointer-events-none">
+      {/*   <div className="grid gap-2 opacity-50 pointer-events-none">
           <div className="grid gap-1">
             <Label htmlFor="email">E-mail</Label>
             <Input
@@ -106,7 +106,7 @@ export function LoginCard() {
 
         <Button className="w-full" variant="secondary" disabled>
           Entrar com E-mail
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );
