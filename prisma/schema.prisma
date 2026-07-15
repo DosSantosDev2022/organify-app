@@ -1,0 +1,143 @@
+datasource db {
+  provider  = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+// ==========================================
+// AUTENTICAÇÃO (Padrão NextAuth + Prisma)
+// ==========================================
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  categories    Category[]
+  transactions  Transaction[]
+  debts         Debt[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// ==========================================
+// CATEGORIAS & LIMITES
+// ==========================================
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String
+  color         String?       // Hexadecimal para a UI (ex: "#FF5733")
+  
+  // Limite mensal salvo em centavos (Ex: R$ 150,00 será salvo como 15000)
+  monthlyLimit  Int?          
+  
+  userId        String
+  parentId      String?       // Auto-relacionamento para Subcategorias
+  
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent        Category?     @relation("Subcategories", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[]    @relation("Subcategories")
+  transactions  Transaction[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([name, userId, parentId])
+}
+
+// ==========================================
+// TRANSAÇÕES (Receitas, Fixas, Variáveis)
+// ==========================================
+
+enum TransactionType {
+  INCOME             // Receita
+  FIXED_EXPENSE      // Despesa Fixa
+  VARIABLE_EXPENSE   // Despesa Variável
+}
+
+enum TransactionStatus {
+  PAID
+  PENDING
+}
+
+model Transaction {
+  id             String            @id @default(uuid())
+  description    String
+  
+  // Valor da transação salvo em centavos (Ex: R$ 49,90 -> 4990)
+  amount         Int               
+  
+  date           DateTime
+  type           TransactionType
+  status         TransactionStatus @default(PENDING)
+  userId         String
+  categoryId     String
+  
+  // Controle de Recorrência e Parcelamento
+  isRecurring        Boolean       @default(false)
+  currentInstallment Int?          // Ex: Parcela 1
+  totalInstallments  Int?          // Ex: de 12
+  parentId           String?       // Vincula parcelas à transação de origem
+  
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category       Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+// ==========================================
+// GESTÃO DE DÍVIDAS
+// ==========================================
+
+model Debt {
+  id             String      @id @default(uuid())
+  name           String      // Credor ou Nome da Dívida
+  
+  // Valores salvos em centavos (Ex: R$ 1.000,00 -> 100000)
+  totalAmount    Int         
+  paidAmount     Int         @default(0)
+  
+  dueDate        DateTime
+  receiptUrl     String?     // Link do comprovante armazenado no Supabase Bucket
+  userId         String
+  
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
